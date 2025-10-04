@@ -1,6 +1,16 @@
 """
 Base Pydantic Models for Service Architecture
 Foundational classes for SRD and ICD objects with type safety and validation
+
+This module implements UAF-based (Unified Architecture Framework) architectural definitions.
+For complete terminology and standards, see: /definitions/architectural_definitions.json
+
+Key UAF Enhancements:
+- Hierarchical tier classification (Tier 0: SoS, Tier 1: Systems, Tier 2: Components)
+- Service vs Function vs Interface distinctions
+- External/non-modifiable system support
+- Enhanced dependency typing (direct/indirect/external)
+- UAF-based communication patterns (synchronous/asynchronous/bidirectional)
 """
 
 from typing import Dict, List, Optional, Set, Union, Any
@@ -50,6 +60,36 @@ class ServiceType(str, Enum):
     GATEWAY = "gateway"
 
 
+class HierarchicalTier(str, Enum):
+    """UAF-based hierarchical tiers for systematic decomposition"""
+    TIER_0_SYSTEM_OF_SYSTEMS = "tier_0_system_of_systems"  # Enterprise/SoS level
+    TIER_1_SYSTEMS = "tier_1_systems"  # Individual systems/major services
+    TIER_2_COMPONENTS = "tier_2_components"  # Components/packages/sub-services
+    TIER_3_INTERNAL_MODULES = "tier_3_internal_modules"  # Classes/methods (conditional)
+
+
+class ComponentClassification(str, Enum):
+    """UAF-based component classification"""
+    SERVICE = "service"  # Black-box functionality exposed to external consumers
+    FUNCTION = "function"  # Internal behavior within a service
+    EXTERNAL = "external"  # External/non-modifiable systems
+    INTERFACE_PROTOCOL = "interface_protocol"  # Data transport mechanisms
+
+
+class DependencyType(str, Enum):
+    """Types of dependencies between components"""
+    DIRECT = "direct"  # Direct communication between components
+    INDIRECT = "indirect"  # Communication through intermediary
+    EXTERNAL = "external"  # Dependency on external system
+
+
+class CommunicationPattern(str, Enum):
+    """UAF-based communication patterns"""
+    SYNCHRONOUS = "synchronous"  # Request-response, caller waits
+    ASYNCHRONOUS = "asynchronous"  # Fire-and-forget, pub-sub
+    BIDIRECTIONAL = "bidirectional"  # Two-way communication
+
+
 class Interface(BaseModel):
     """Represents a single interface (endpoint, message, etc.)"""
     model_config = ConfigDict(use_enum_values=True)
@@ -64,6 +104,8 @@ class Interface(BaseModel):
     headers: Optional[Dict[str, str]] = None
     parameters: Optional[Dict[str, Any]] = None
     dependencies: List[str] = Field(default_factory=list)
+    dependency_type: DependencyType = DependencyType.DIRECT
+    communication_pattern: CommunicationPattern = CommunicationPattern.SYNCHRONOUS
     rate_limit: Optional[int] = None
     auth_required: bool = False
     timeout: Optional[int] = None
@@ -164,6 +206,12 @@ class BaseSRD(BaseModel):
     runtime: RuntimeInfo = Field(default_factory=RuntimeInfo)
     service_type: ServiceType = ServiceType.CORE
     
+    # UAF-based classifications
+    hierarchical_tier: HierarchicalTier = HierarchicalTier.TIER_2_COMPONENTS
+    component_classification: ComponentClassification = ComponentClassification.SERVICE
+    is_external: bool = False  # Mark external/non-modifiable systems
+    parent_system: Optional[str] = None  # Reference to parent in hierarchy
+    
     # Metadata
     creation_date: datetime = Field(default_factory=datetime.now)
     last_updated: datetime = Field(default_factory=datetime.now)
@@ -202,9 +250,13 @@ class BaseICD(BaseModel):
     timeouts: Dict[str, int] = Field(default_factory=dict)
     error_handling: Dict[str, Any] = Field(default_factory=dict)
     
-    # Communication patterns
-    communication_patterns: List[str] = Field(default_factory=list)
+    # Communication patterns (UAF-based)
+    communication_patterns: List[CommunicationPattern] = Field(default_factory=list)
     message_formats: Dict[str, Dict] = Field(default_factory=dict)
+    
+    # UAF classifications
+    component_classification: ComponentClassification = ComponentClassification.SERVICE
+    is_external: bool = False  # Mark external/non-modifiable systems
     
     # Runtime information
     runtime: RuntimeInfo = Field(default_factory=RuntimeInfo)
@@ -336,6 +388,45 @@ class ServiceArchitecture(BaseModel):
         self.icd.runtime = self.srd.runtime
 
 
+class SystemComposition(BaseModel):
+    """UAF-based system composition model"""
+    model_config = ConfigDict(use_enum_values=True)
+    
+    system_name: str
+    system_id: str
+    hierarchical_tier: HierarchicalTier
+    description: str = ""
+    
+    # Component references
+    component_services: List[str] = Field(default_factory=list)  # Service IDs
+    subsystems: List[str] = Field(default_factory=list)  # Child system IDs
+    parent_system: Optional[str] = None  # Parent system ID
+    
+    # System characteristics
+    system_boundaries: Dict[str, Any] = Field(default_factory=dict)
+    emergent_capabilities: List[str] = Field(default_factory=list)
+    governance_policies: List[str] = Field(default_factory=list)
+    
+    # Integration specifications
+    integration_interfaces: List[str] = Field(default_factory=list)
+    system_constraints: List[str] = Field(default_factory=list)
+    
+    # Metadata
+    version_info: VersionInfo = Field(default_factory=lambda: VersionInfo(version="1.0"))
+    creation_date: datetime = Field(default_factory=datetime.now)
+    last_updated: datetime = Field(default_factory=datetime.now)
+
+
+class EnhancedDependency(BaseModel):
+    """Enhanced dependency specification with UAF-based typing"""
+    target_service_id: str
+    target_interface_id: str
+    dependency_type: DependencyType
+    communication_pattern: CommunicationPattern
+    is_critical: bool = True
+    failover_strategy: Optional[str] = None
+    
+
 # Example of how to extend for specific services
 class APIGatewaySRD(BaseSRD):
     """API Gateway specific SRD with additional fields"""
@@ -359,9 +450,13 @@ def create_service_architecture(
     srd_version: str,
     icd_version: str,
     service_type: ServiceType = ServiceType.CORE,
+    hierarchical_tier: HierarchicalTier = HierarchicalTier.TIER_2_COMPONENTS,
+    component_classification: ComponentClassification = ComponentClassification.SERVICE,
+    is_external: bool = False,
+    parent_system: Optional[str] = None,
     **kwargs
 ) -> ServiceArchitecture:
-    """Factory function to create a service architecture"""
+    """Factory function to create a UAF-compliant service architecture"""
     
     service_id = service_name.lower().replace(' ', '_').replace('-', '_')
     
@@ -369,13 +464,17 @@ def create_service_architecture(
     srd_version_info = VersionInfo(version=srd_version, note="Auto-generated")
     icd_version_info = VersionInfo(version=icd_version, note="Auto-generated")
     
-    # Create SRD
+    # Create SRD with UAF fields
     srd_data = {
         'service_name': service_name,
         'service_id': service_id,
         'service_directory': service_directory,
         'version_info': srd_version_info,
         'service_type': service_type,
+        'hierarchical_tier': hierarchical_tier,
+        'component_classification': component_classification,
+        'is_external': is_external,
+        'parent_system': parent_system,
         **{k: v for k, v in kwargs.items() if k in BaseSRD.model_fields}
     }
     
@@ -385,11 +484,13 @@ def create_service_architecture(
     else:
         srd = BaseSRD(**srd_data)
     
-    # Create ICD
+    # Create ICD with UAF fields
     icd_data = {
         'service_name': service_name,
         'service_id': service_id,
         'version_info': icd_version_info,
+        'component_classification': component_classification,
+        'is_external': is_external,
         **{k: v for k, v in kwargs.items() if k in BaseICD.model_fields}
     }
     
@@ -404,26 +505,60 @@ def create_service_architecture(
 
 # Example usage
 if __name__ == "__main__":
-    # Create a sample service architecture
+    # Create a sample service architecture with UAF classifications
     arch = create_service_architecture(
-        service_name="Test Service",
-        service_directory="./services/test",
-        srd_version="1.0",
-        icd_version="1.0",
-        service_type=ServiceType.CORE
+        service_name="Bluesky Queue Server",
+        service_directory="./services/bluesky-queueserver",
+        srd_version="1.0+2025-09-30",
+        icd_version="1.0+2025-09-30",
+        service_type=ServiceType.CORE,
+        hierarchical_tier=HierarchicalTier.TIER_2_COMPONENTS,
+        component_classification=ComponentClassification.SERVICE,
+        parent_system="QSaaS_to_OaaS"
     )
     
-    # Add an interface
+    # Add an interface with UAF communication pattern
     interface = Interface(
         interface_type=InterfaceType.HTTP_ENDPOINT,
-        name="Get User",
-        method=HTTPMethod.GET,
-        path="/users/{id}",
-        description="Retrieve user by ID"
+        name="Queue Management API",
+        method=HTTPMethod.POST,
+        path="/queue/item/add",
+        description="Add item to experiment queue",
+        communication_pattern=CommunicationPattern.SYNCHRONOUS,
+        dependency_type=DependencyType.DIRECT
     )
     
     arch.icd.add_interface(interface)
     
+    # Create an external system example
+    external_ioc = create_service_architecture(
+        service_name="EPICS IOC",
+        service_directory="./external/epics-ioc",
+        srd_version="1.0+2025-09-30", 
+        icd_version="1.0+2025-09-30",
+        service_type=ServiceType.INFRASTRUCTURE,
+        hierarchical_tier=HierarchicalTier.TIER_2_COMPONENTS,
+        component_classification=ComponentClassification.EXTERNAL,
+        is_external=True,
+        parent_system="Device_Control_System"
+    )
+    
+    # Create a system composition example
+    system_composition = SystemComposition(
+        system_name="Bluesky Data Acquisition System",
+        system_id="bluesky_daq_system",
+        hierarchical_tier=HierarchicalTier.TIER_1_SYSTEMS,
+        description="Complete data acquisition system for scientific experiments",
+        component_services=["bluesky_queue_server", "device_monitoring", "coordination_service"],
+        emergent_capabilities=["Automated experiment execution", "Real-time data monitoring"],
+        parent_system="Laboratory_Automation_Ecosystem"
+    )
+    
     print(f"Created architecture for {arch.service_name}")
+    print(f"Hierarchical tier: {arch.srd.hierarchical_tier}")
+    print(f"Component classification: {arch.srd.component_classification}")
     print(f"Interfaces: {len(arch.icd.interfaces)}")
     print(f"Interface ID: {interface.interface_id}")
+    print(f"Communication pattern: {interface.communication_pattern}")
+    print(f"External IOC created: {external_ioc.service_name}")
+    print(f"System composition: {system_composition.system_name} at {system_composition.hierarchical_tier}")
