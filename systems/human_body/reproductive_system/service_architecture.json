@@ -1,0 +1,68 @@
+{
+  "template_version": "1.0",
+  "service_name": "Reproductive System",
+  "service_id": "reproductive_system",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Produces sex cells and hormones necessary for reproduction.",
+  "dependencies": ["endocrine_system", "cardiovascular_system"],
+  "interfaces": [
+    {
+      "name": "Hormonal Regulation",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Receives hormonal signals from endocrine system to regulate reproductive processes. Verified by physiology literature.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources (NCBI, PubMed)"
+    },
+    {
+      "name": "Nutrient and Oxygen Supply",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Receives nutrients and oxygen from cardiovascular system for reproductive organ function. Verified by physiology literature.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources (NCBI, PubMed)"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "human_body",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": []
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {}
+  },
+  "performance": {
+    "expected_load": "medium",
+    "scaling_strategy": "none",
+    "resource_requirements": {}
+  },
+  "version": "1.0+2025-09-30",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": ["https://www.ncbi.nlm.nih.gov/books/NBK279393/", "https://en.wikipedia.org/wiki/Reproductive_system"],
+    "analysis_date": "2025-09-30",
+    "confidence_level": "high"
+  },
+  "implementation_status": "existing",
+  "verification_notes": "Based on established anatomical and physiological sources.",
+  "justification": {
+    "rationale": "Standard anatomical model; all interfaces are well-documented in literature.",
+    "standards_reference": "Gray's Anatomy, NCBI, PubMed",
+    "best_practices_reference": "",
+    "examples": "Hormonal regulation, nutrient and oxygen supply",
+    "trade_offs": "None; follows biological reality."
+  }
+}

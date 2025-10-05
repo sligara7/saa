@@ -1,0 +1,47 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Stellar and Planetary Systems",
+  "service_id": "universe.cosmic_structure.stellar_planetary_systems",
+  "hierarchical_tier": "tier_2_components",
+  "component_classification": "service",
+  "purpose": "Processes matter and energy, supporting complex internal dynamics. Components: Stars, planets, moons, asteroids, comets.",
+  "dependencies": ["universe.matter_energy.ordinary_matter", "universe.fundamental_forces.gravity"],
+  "interfaces": [
+    {
+      "name": "Stellar and Planetary Interaction",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Stellar and planetary systems are gravitationally bound collections of matter that exhibit complex dynamics, including orbital motion, energy transfer, and chemical evolution.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources. See: https://en.wikipedia.org/wiki/Planetary_system, https://en.wikipedia.org/wiki/Star_system"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "Cosmic Structure System",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": []
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {}
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "none",
+    "resource_requirements": {}
+  },
+  "version": "1.0+2025-09-30",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": ["https://en.wikipedia.org/wiki/Planetary_system", "https://en.wikipedia.org/wiki/Star_system"]
+  }
+}

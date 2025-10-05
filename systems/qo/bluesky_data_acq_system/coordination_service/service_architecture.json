@@ -1,0 +1,111 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Coordination Service",
+  "service_id": "coordination_service",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Prevents conflicts between remote users and ensures safe beamline operation by managing exclusive access locks, coordinating between queue operations and manual interventions, and replacing traditional physical presence control with remote coordination mechanisms.",
+  "dependencies": [
+    "lock_manager",
+    "conflict_resolver",
+    "access_coordinator"
+  ],
+  "interfaces": [
+    {
+      "name": "Beamline Lock Interface",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/locks",
+      "method": "POST",
+      "description": "Lock beamline for exclusive scan/bluesky plan execution",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Recommended solution - standard pattern for resource locking in distributed systems"
+    },
+    {
+      "name": "Queue Server Coordination",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Interface with Queue Server Service to coordinate plan execution and prevent conflicts",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Recommended solution - enables safe remote experiment execution"
+    },
+    {
+      "name": "Device Monitoring Coordination",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Interface with Device Monitoring Service to prevent manual device control during automated scans",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Recommended solution - prevents conflicts during exclusive operations"
+    },
+    {
+      "name": "User Access Management",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/access",
+      "method": "GET",
+      "description": "Manage user access permissions and coordinate between multiple remote users",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Recommended solution - essential for multi-user remote operation"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "bluesky_data_acq_system",
+  "security": {
+    "api_key_authentication": true,
+    "ssl_tls": true,
+    "additional_requirements": [
+      "Strong authentication for lock management operations",
+      "Audit logging for all coordination decisions",
+      "Timeout mechanisms for abandoned locks"
+    ]
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": true,
+    "python_uvicorn": true,
+    "docker_container": false,
+    "additional_info": {
+      "deployment_status": "New service - requires development",
+      "integration_points": "Standalone service maintaining separation of concerns",
+      "configuration_needs": "Lock timeouts, user permissions, safety policies"
+    }
+  },
+  "performance": {
+    "expected_load": "low",
+    "scaling_strategy": "vertical",
+    "resource_requirements": {
+      "response_time": "Low latency for lock operations to prevent delays",
+      "availability": "High availability to prevent blocking experiment execution",
+      "consistency": "Strong consistency for lock state management"
+    }
+  },
+  "version": "1.0+2025-10-02",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": [],
+    "analysis_date": "2025-10-02",
+    "confidence_level": "medium"
+  },
+  "implementation_status": "recommended",
+  "verification_notes": "New service recommendation - no existing implementation, designed based on system requirements and coordination patterns",
+  "justification": {
+    "rationale": "Independent coordination service maintains separation of concerns and avoids coupling beamline control logic with experiment execution or device monitoring",
+    "standards_reference": "Distributed systems coordination patterns, semaphore design pattern",
+    "best_practices_reference": "Microservices architecture with single responsibility principle",
+    "examples": "Similar to resource coordination in cluster computing systems",
+    "trade_offs": "Additional service complexity vs. safety and clean architecture separation"
+  }
+}

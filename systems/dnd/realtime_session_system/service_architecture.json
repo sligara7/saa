@@ -1,0 +1,130 @@
+{
+  "uaf_version": "1.2",
+  "uaf_standards": {
+    "dmm": "ISO/IEC 19540-1:2022",
+    "uafml": "ISO/IEC 19540-2:2022"
+  },
+  "service_name": "Real-Time Game Session System",
+  "service_id": "realtime_session_system",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Coordinate live gameplay with WebSocket synchronization, combat management, state persistence, and session lifecycle.",
+  "applicable_viewpoints": [
+    {
+      "viewpoint": "operational",
+      "concern": "Session lifecycle and coordination",
+      "key_views": ["Live Session Flow", "Combat Orchestration"],
+      "stakeholders": ["Dungeon Masters", "Players"]
+    },
+    {
+      "viewpoint": "services",
+      "concern": "WebSocket and REST interfaces",
+      "key_views": ["WS Endpoint", "REST API"],
+      "stakeholders": ["Service Developers", "Integration Engineers"]
+    },
+    {
+      "viewpoint": "resources",
+      "concern": "Session state and storage",
+      "key_views": ["State Management", "Persistence"],
+      "stakeholders": ["Database Architects", "Reliability Engineers"]
+    }
+  ],
+  "service_resource_relationships": [
+    {
+      "resource_type": "WebSocket Endpoint",
+      "relationship": "implements",
+      "capability": "Real-Time Coordination",
+      "resource_performer": "Session Coordinator"
+    },
+    {
+      "resource_type": "Session Store",
+      "relationship": "provides",
+      "capability": "State Persistence",
+      "resource_performer": "PostgreSQL 18"
+    }
+  ],
+  "digital_transformation_aspects": {
+    "real_time_play": {
+      "description": "Responsive, synchronized live gameplay",
+      "capabilities": ["Sub-100ms updates", "Reliable WS", "State recovery"]
+    }
+  },
+  "dependencies": [
+    "integration_system",
+    "character_management_system",
+    "campaign_management_system",
+    "data_management_system"
+  ],
+  "interfaces": [
+    {
+      "name": "live_session_ws",
+      "interface_type": "message",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "path": "/api/v2/sessions/{id}/live",
+      "description": "WebSocket endpoint for real-time gameplay coordination.",
+      "information_element_flows": [
+        "event_notification",
+        "status_report",
+        "control_signal"
+      ],
+      "service_resource_relationship": "implements",
+      "applicable_viewpoints": ["services", "resources"],
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Feature summary endpoints"
+    },
+    {
+      "name": "session_state_update",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/v2/sessions/{id}/state",
+      "method": "PUT",
+      "description": "Update character and encounter state during sessions.",
+      "information_element_flows": [
+        "data_exchange",
+        "status_report"
+      ],
+      "service_resource_relationship": "controls",
+      "applicable_viewpoints": ["services", "resources"],
+      "auth_required": true,
+      "version": "2.0",
+      "implementation_status": "recommended",
+      "source_verification": "Feature summary endpoints"
+    },
+    {
+      "name": "session_events",
+      "interface_type": "message",
+      "communication_pattern": "asynchronous",
+      "dependency_type": "indirect",
+      "description": "Publish session events to Message Hub for cross-service updates.",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Message Hub Architecture"
+    },
+    {
+      "name": "postgres_storage",
+      "interface_type": "storage_requirement",
+      "communication_pattern": "synchronous",
+      "dependency_type": "external",
+      "description": "Persist session history and state snapshots in PostgreSQL 18.",
+      "auth_required": true,
+      "version": "18",
+      "implementation_status": "recommended",
+      "source_verification": "User-provided stack versions"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "dnd_services_platform",
+  "security": {"api_key_authentication": false, "ssl_tls": true, "additional_requirements": ["OAuth2 JWT", "RBAC", "WebSocket token auth"]},
+  "deployment": {"ansible_managed": true, "systemd_service": false, "python_uvicorn": true, "docker_container": true, "additional_info": {"fastapi": "0.118.0", "python": "3.13.7"}},
+  "performance": {"expected_load": "high", "scaling_strategy": "horizontal", "resource_requirements": {"ws_latency": "< 100ms"}},
+  "version": "1.0+2025-10-04",
+  "source_references": {"documentation_links": [], "analysis_date": "2025-10-04", "confidence_level": "medium"},
+  "implementation_status": "recommended",
+  "verification_notes": "WebSocket coordination per feature summary; no repos available",
+  "justification": {"rationale": "Dedicated real-time coordination service", "best_practices_reference": "WebSocket behind Traefik; stateless nodes + external state"}
+}

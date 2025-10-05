@@ -1,0 +1,108 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "EPICS IOCs",
+  "service_id": "epics_iocs",
+  "hierarchical_tier": "tier_2_components",
+  "component_classification": "external",
+  "purpose": "Input/Output Controllers (IOCs) that interface directly with scientific instruments and provide EPICS Process Variables (PVs) for device control and monitoring. These are external systems that cannot be modified but provide the fundamental device interface layer.",
+  "dependencies": [
+    "scientific_instruments"
+  ],
+  "interfaces": [
+    {
+      "name": "EPICS Process Variables",
+      "interface_type": "data_contract",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "external",
+      "description": "EPICS Process Variables (PVs) for device control, status monitoring, and data acquisition",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on standard EPICS IOC implementations in scientific facilities"
+    },
+    {
+      "name": "Channel Access Server",
+      "interface_type": "service_dependency",
+      "communication_pattern": "asynchronous",
+      "dependency_type": "external",
+      "description": "EPICS Channel Access server providing network access to PVs for remote monitoring and control",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on standard EPICS Channel Access server functionality"
+    },
+    {
+      "name": "Device Hardware Interface",
+      "interface_type": "service_dependency",
+      "communication_pattern": "asynchronous",
+      "dependency_type": "external",
+      "description": "Hardware interface to scientific instruments including motors, detectors, and sensors",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on standard IOC hardware interface patterns"
+    },
+    {
+      "name": "Database Configuration",
+      "interface_type": "data_contract",
+      "communication_pattern": "synchronous",
+      "dependency_type": "external",
+      "description": "EPICS database records defining PV structure, limits, and processing logic",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on standard EPICS database record configuration"
+    }
+  ],
+  "is_external": true,
+  "parent_system": "external_systems",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": [
+      "Network access control to IOC subnets",
+      "EPICS Channel Access security configuration",
+      "Physical security for IOC hardware"
+    ]
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {
+      "external_system": "Cannot be modified or directly managed",
+      "deployment_environment": "Dedicated IOC hardware or embedded systems",
+      "maintenance": "Managed by facility control systems team"
+    }
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "none",
+    "resource_requirements": {
+      "real_time_capability": "Real-time response for device control operations",
+      "reliability": "High reliability for scientific instrument operation",
+      "deterministic_behavior": "Predictable response times for experimental control"
+    }
+  },
+  "version": "1.0+2025-10-02",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": [
+      "https://epics.anl.gov/base/R3-15/1-docs/AppDevGuide/AppDevGuide.html",
+      "https://epics.anl.gov/docs/iocStats.html"
+    ],
+    "analysis_date": "2025-10-02",
+    "confidence_level": "high"
+  },
+  "implementation_status": "existing",
+  "verification_notes": "Based on standard EPICS IOC implementations widely used in scientific facilities",
+  "justification": {
+    "rationale": "Essential external interface layer providing standardized access to scientific instrument hardware",
+    "standards_reference": "EPICS (Experimental Physics and Industrial Control System) - industry standard",
+    "best_practices_reference": "Separation of hardware interface from application control logic",
+    "examples": "Universally used in synchrotron facilities, particle accelerators, and large scientific experiments",
+    "trade_offs": "External system constraints vs. standardized, reliable instrument interface"
+  }
+}

@@ -2,15 +2,18 @@
 Base Pydantic Models for Service Architecture
 Foundational classes for SRD and ICD objects with type safety and validation
 
-This module implements UAF-based (Unified Architecture Framework) architectural definitions.
+This module implements UAF 1.2-based (Unified Architecture Framework) architectural definitions.
+Compliant with ISO/IEC 19540-1:2022 (DMM) and ISO/IEC 19540-2:2022 (UAFML).
 For complete terminology and standards, see: /definitions/architectural_definitions.json
 
-Key UAF Enhancements:
-- Hierarchical tier classification (Tier 0: SoS, Tier 1: Systems, Tier 2: Components)
-- Service vs Function vs Interface distinctions
-- External/non-modifiable system support
-- Enhanced dependency typing (direct/indirect/external)
-- UAF-based communication patterns (synchronous/asynchronous/bidirectional)
+Key UAF 1.2 Enhancements:
+- Enhanced 11-viewpoint grid (Architecture Management, Strategic, Operational, Services, etc.)
+- Refined Domain Metamodel (DMM) with improved Service-Resource relationships
+- SysML v2 alignment for Model-Based Systems Engineering (MBSE)
+- Service vs Function vs Interface distinctions with enhanced connectivity patterns
+- External/non-modifiable system support with Resource Performer specifications
+- Enhanced dependency typing (direct/indirect/external) with Information Element flows
+- UAF 1.2-based communication patterns with enhanced traceability framework
 """
 
 from typing import Dict, List, Optional, Set, Union, Any
@@ -60,6 +63,41 @@ class ServiceType(str, Enum):
     GATEWAY = "gateway"
 
 
+class UAFViewpoint(str, Enum):
+    """UAF 1.2 eleven-viewpoint architecture framework"""
+    ARCHITECTURE_MANAGEMENT = "architecture_management"
+    SUMMARY_OVERVIEW = "summary_overview"
+    STRATEGIC = "strategic"
+    OPERATIONAL = "operational"
+    SERVICES = "services"
+    PERSONNEL = "personnel"
+    RESOURCES = "resources"
+    SECURITY = "security"
+    PROJECT = "project"
+    STANDARDS = "standards"
+    ACTUAL_RESOURCES = "actual_resources"
+
+
+class InformationElementFlow(str, Enum):
+    """UAF 1.2 Information Element flow types"""
+    DATA_EXCHANGE = "data_exchange"
+    CONTROL_SIGNAL = "control_signal"
+    STATUS_REPORT = "status_report"
+    CONFIGURATION_DATA = "configuration_data"
+    EVENT_NOTIFICATION = "event_notification"
+    MEASUREMENT_DATA = "measurement_data"
+
+
+class ServiceResourceRelationship(str, Enum):
+    """UAF 1.2 enhanced Service-Resource relationship types"""
+    IMPLEMENTS = "implements"  # Service implements Resource capability
+    CONSUMES = "consumes"  # Service consumes Resource
+    PROVIDES = "provides"  # Service provides Resource
+    CONFIGURES = "configures"  # Service configures Resource
+    MONITORS = "monitors"  # Service monitors Resource
+    CONTROLS = "controls"  # Service controls Resource
+
+
 class HierarchicalTier(str, Enum):
     """UAF-based hierarchical tiers for systematic decomposition"""
     TIER_0_SYSTEM_OF_SYSTEMS = "tier_0_system_of_systems"  # Enterprise/SoS level
@@ -91,7 +129,7 @@ class CommunicationPattern(str, Enum):
 
 
 class Interface(BaseModel):
-    """Represents a single interface (endpoint, message, etc.)"""
+    """Represents a single interface (endpoint, message, etc.) with UAF 1.2 enhancements"""
     model_config = ConfigDict(use_enum_values=True)
     
     interface_type: InterfaceType
@@ -110,6 +148,12 @@ class Interface(BaseModel):
     auth_required: bool = False
     timeout: Optional[int] = None
     version: str = "1.0"
+    
+    # UAF 1.2 enhancements
+    information_element_flows: List[InformationElementFlow] = Field(default_factory=list)
+    service_resource_relationship: Optional[ServiceResourceRelationship] = None
+    applicable_viewpoints: List[UAFViewpoint] = Field(default_factory=list)
+    traceability_links: Dict[str, str] = Field(default_factory=dict)  # Links to requirements, designs, etc.
     
     @property
     def interface_id(self) -> str:
@@ -206,11 +250,19 @@ class BaseSRD(BaseModel):
     runtime: RuntimeInfo = Field(default_factory=RuntimeInfo)
     service_type: ServiceType = ServiceType.CORE
     
-    # UAF-based classifications
+    # UAF 1.2-based classifications
     hierarchical_tier: HierarchicalTier = HierarchicalTier.TIER_2_COMPONENTS
     component_classification: ComponentClassification = ComponentClassification.SERVICE
     is_external: bool = False  # Mark external/non-modifiable systems
     parent_system: Optional[str] = None  # Reference to parent in hierarchy
+    
+    # UAF 1.2 enhancements
+    applicable_viewpoints: List[UAFViewpoint] = Field(default_factory=list)
+    resource_performers: List[str] = Field(default_factory=list)  # ResourcePerformer references
+    operational_activities: List[str] = Field(default_factory=list)  # OperationalActivity references
+    capabilities_provided: List[str] = Field(default_factory=list)  # Capability specifications
+    enterprise_constraints: List[str] = Field(default_factory=list)  # Enterprise-level constraints
+    parametric_analysis_support: Dict[str, Any] = Field(default_factory=dict)  # SysML v2 integration
     
     # Metadata
     creation_date: datetime = Field(default_factory=datetime.now)
@@ -254,9 +306,15 @@ class BaseICD(BaseModel):
     communication_patterns: List[CommunicationPattern] = Field(default_factory=list)
     message_formats: Dict[str, Dict] = Field(default_factory=dict)
     
-    # UAF classifications
+    # UAF 1.2 classifications
     component_classification: ComponentClassification = ComponentClassification.SERVICE
     is_external: bool = False  # Mark external/non-modifiable systems
+    
+    # UAF 1.2 enhancements
+    applicable_viewpoints: List[UAFViewpoint] = Field(default_factory=list)
+    service_resource_relationships: List[ServiceResourceRelationship] = Field(default_factory=list)
+    information_element_specifications: Dict[str, Any] = Field(default_factory=dict)
+    ideas_ontology_elements: Dict[str, Any] = Field(default_factory=dict)  # IDEAS Foundation integration
     
     # Runtime information
     runtime: RuntimeInfo = Field(default_factory=RuntimeInfo)
@@ -389,7 +447,7 @@ class ServiceArchitecture(BaseModel):
 
 
 class SystemComposition(BaseModel):
-    """UAF-based system composition model"""
+    """UAF 1.2-based system composition model with enhanced viewpoint support"""
     model_config = ConfigDict(use_enum_values=True)
     
     system_name: str
@@ -411,6 +469,13 @@ class SystemComposition(BaseModel):
     integration_interfaces: List[str] = Field(default_factory=list)
     system_constraints: List[str] = Field(default_factory=list)
     
+    # UAF 1.2 enhancements
+    applicable_viewpoints: List[UAFViewpoint] = Field(default_factory=list)
+    resource_performer_network: Dict[str, List[str]] = Field(default_factory=dict)
+    capability_taxonomy: List[str] = Field(default_factory=list)
+    digital_transformation_aspects: List[str] = Field(default_factory=list)
+    cyber_physical_integration: Dict[str, Any] = Field(default_factory=dict)
+    
     # Metadata
     version_info: VersionInfo = Field(default_factory=lambda: VersionInfo(version="1.0"))
     creation_date: datetime = Field(default_factory=datetime.now)
@@ -418,13 +483,19 @@ class SystemComposition(BaseModel):
 
 
 class EnhancedDependency(BaseModel):
-    """Enhanced dependency specification with UAF-based typing"""
+    """Enhanced dependency specification with UAF 1.2-based typing and traceability"""
     target_service_id: str
     target_interface_id: str
     dependency_type: DependencyType
     communication_pattern: CommunicationPattern
     is_critical: bool = True
     failover_strategy: Optional[str] = None
+    
+    # UAF 1.2 enhancements
+    information_element_flows: List[InformationElementFlow] = Field(default_factory=list)
+    service_resource_relationship: Optional[ServiceResourceRelationship] = None
+    traceability_references: Dict[str, str] = Field(default_factory=dict)
+    viewpoint_context: List[UAFViewpoint] = Field(default_factory=list)
     
 
 # Example of how to extend for specific services
@@ -456,7 +527,7 @@ def create_service_architecture(
     parent_system: Optional[str] = None,
     **kwargs
 ) -> ServiceArchitecture:
-    """Factory function to create a UAF-compliant service architecture"""
+    """Factory function to create a UAF 1.2-compliant service architecture"""
     
     service_id = service_name.lower().replace(' ', '_').replace('-', '_')
     
@@ -503,9 +574,9 @@ def create_service_architecture(
     return ServiceArchitecture(srd=srd, icd=icd)
 
 
-# Example usage
+# Example usage with UAF 1.2 features
 if __name__ == "__main__":
-    # Create a sample service architecture with UAF classifications
+    # Create a sample service architecture with UAF 1.2 classifications
     arch = create_service_architecture(
         service_name="Bluesky Queue Server",
         service_directory="./services/bluesky-queueserver",
@@ -517,7 +588,20 @@ if __name__ == "__main__":
         parent_system="QSaaS_to_OaaS"
     )
     
-    # Add an interface with UAF communication pattern
+    # Add UAF 1.2 viewpoint specifications
+    arch.srd.applicable_viewpoints = [
+        UAFViewpoint.OPERATIONAL,
+        UAFViewpoint.SERVICES,
+        UAFViewpoint.RESOURCES
+    ]
+    
+    arch.srd.capabilities_provided = [
+        "Experiment Queue Management",
+        "Plan Execution Coordination",
+        "Real-time Status Monitoring"
+    ]
+    
+    # Add an interface with UAF 1.2 enhancements
     interface = Interface(
         interface_type=InterfaceType.HTTP_ENDPOINT,
         name="Queue Management API",
@@ -525,12 +609,22 @@ if __name__ == "__main__":
         path="/queue/item/add",
         description="Add item to experiment queue",
         communication_pattern=CommunicationPattern.SYNCHRONOUS,
-        dependency_type=DependencyType.DIRECT
+        dependency_type=DependencyType.DIRECT,
+        information_element_flows=[
+            InformationElementFlow.CONTROL_SIGNAL,
+            InformationElementFlow.STATUS_REPORT
+        ],
+        service_resource_relationship=ServiceResourceRelationship.CONTROLS,
+        applicable_viewpoints=[UAFViewpoint.OPERATIONAL, UAFViewpoint.SERVICES],
+        traceability_links={
+            "requirement": "REQ-001-Queue-Management",
+            "design": "DES-001-Queue-API"
+        }
     )
     
     arch.icd.add_interface(interface)
     
-    # Create an external system example
+    # Create an external system example with UAF 1.2 enhancements
     external_ioc = create_service_architecture(
         service_name="EPICS IOC",
         service_directory="./external/epics-ioc",
@@ -543,7 +637,12 @@ if __name__ == "__main__":
         parent_system="Device_Control_System"
     )
     
-    # Create a system composition example
+    external_ioc.srd.applicable_viewpoints = [
+        UAFViewpoint.ACTUAL_RESOURCES,
+        UAFViewpoint.OPERATIONAL
+    ]
+    
+    # Create a system composition example with UAF 1.2 enhancements
     system_composition = SystemComposition(
         system_name="Bluesky Data Acquisition System",
         system_id="bluesky_daq_system",
@@ -551,14 +650,37 @@ if __name__ == "__main__":
         description="Complete data acquisition system for scientific experiments",
         component_services=["bluesky_queue_server", "device_monitoring", "coordination_service"],
         emergent_capabilities=["Automated experiment execution", "Real-time data monitoring"],
-        parent_system="Laboratory_Automation_Ecosystem"
+        parent_system="Laboratory_Automation_Ecosystem",
+        applicable_viewpoints=[
+            UAFViewpoint.STRATEGIC,
+            UAFViewpoint.OPERATIONAL,
+            UAFViewpoint.SERVICES,
+            UAFViewpoint.RESOURCES
+        ],
+        capability_taxonomy=[
+            "Scientific Data Acquisition",
+            "Experiment Automation",
+            "Device Control Integration"
+        ],
+        digital_transformation_aspects=[
+            "AI-Enhanced Experiment Planning",
+            "Cloud-Native Architecture",
+            "Real-time Analytics Integration"
+        ]
     )
     
-    print(f"Created architecture for {arch.service_name}")
+    print(f"Created UAF 1.2 architecture for {arch.service_name}")
     print(f"Hierarchical tier: {arch.srd.hierarchical_tier}")
     print(f"Component classification: {arch.srd.component_classification}")
+    print(f"Applicable viewpoints: {arch.srd.applicable_viewpoints}")
+    print(f"Capabilities provided: {arch.srd.capabilities_provided}")
     print(f"Interfaces: {len(arch.icd.interfaces)}")
     print(f"Interface ID: {interface.interface_id}")
     print(f"Communication pattern: {interface.communication_pattern}")
+    print(f"Information flows: {interface.information_element_flows}")
+    print(f"Service-Resource relationship: {interface.service_resource_relationship}")
     print(f"External IOC created: {external_ioc.service_name}")
+    print(f"External IOC viewpoints: {external_ioc.srd.applicable_viewpoints}")
     print(f"System composition: {system_composition.system_name} at {system_composition.hierarchical_tier}")
+    print(f"System viewpoints: {system_composition.applicable_viewpoints}")
+    print(f"Digital transformation aspects: {system_composition.digital_transformation_aspects}")

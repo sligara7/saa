@@ -1,0 +1,98 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Systemd Services",
+  "service_id": "systemd_services",
+  "hierarchical_tier": "tier_2_components",
+  "component_classification": "service",
+  "purpose": "Service lifecycle management for all Bluesky components. Provides automated startup, monitoring, restart, and shutdown capabilities for bluesky-queueserver, bluesky-httpserver, nginx, and redis.",
+  "dependencies": [],
+  "interfaces": [
+    {
+      "name": "Service Lifecycle Management",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Systemd service management for automated startup, monitoring, and restart of all components",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual systemd service configurations in Ansible deployments"
+    },
+    {
+      "name": "Service Dependencies",
+      "interface_type": "architectural_constraint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Manages service startup order and dependencies between components",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on systemd service dependency configuration"
+    },
+    {
+      "name": "Log Management",
+      "interface_type": "service_dependency",
+      "communication_pattern": "asynchronous",
+      "dependency_type": "direct",
+      "description": "Centralized logging and log rotation for all services via systemd journal",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on systemd logging capabilities"
+    }
+  ],
+  "is_external": true,
+  "parent_system": "queue_server_service",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": [
+      "Service account isolation for different components",
+      "Principle of least privilege for service permissions",
+      "Secure file permissions for service configurations"
+    ]
+  },
+  "deployment": {
+    "ansible_managed": true,
+    "systemd_service": true,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {
+      "managed_services": [
+        "bluesky-queueserver.service",
+        "bluesky-httpserver.service",
+        "nginx.service",
+        "redis.service"
+      ],
+      "configuration": "Templated systemd service files for reproducible deployments"
+    }
+  },
+  "performance": {
+    "expected_load": "low",
+    "scaling_strategy": "none",
+    "resource_requirements": {
+      "description": "Minimal overhead for service management",
+      "monitoring": "Process monitoring and automatic restart capabilities"
+    }
+  },
+  "version": "1.0+2025-10-02",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": [
+      "https://systemd.io/",
+      "https://www.freedesktop.org/software/systemd/man/systemd.service.html"
+    ],
+    "analysis_date": "2025-10-02",
+    "confidence_level": "high"
+  },
+  "implementation_status": "existing",
+  "verification_notes": "Based on actual systemd service management in Ansible deployment configurations",
+  "justification": {
+    "rationale": "Provides reliable service lifecycle management and monitoring for production deployments",
+    "standards_reference": "Industry standard Linux service management",
+    "best_practices_reference": "Infrastructure as code with automated service management",
+    "examples": "Standard approach for production service deployments on Linux",
+    "trade_offs": "Platform dependency vs. robust service management capabilities"
+  }
+}

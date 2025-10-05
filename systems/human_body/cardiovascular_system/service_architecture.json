@@ -1,0 +1,79 @@
+{
+  "template_version": "1.0",
+  "service_name": "Cardiovascular System",
+  "service_id": "cardiovascular_system",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Transports oxygen, nutrients, hormones, and waste products throughout the body.",
+  "dependencies": ["respiratory_system", "endocrine_system", "urinary_system"],
+  "interfaces": [
+    {
+      "name": "Gas Exchange",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Receives oxygen from respiratory system and delivers carbon dioxide for removal. Verified by physiology literature.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources (NCBI, PubMed)"
+    },
+    {
+      "name": "Hormone Transport",
+      "interface_type": "data_contract",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Transports hormones produced by endocrine system to target organs. Verified by physiology literature.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources (NCBI, PubMed)"
+    },
+    {
+      "name": "Blood Filtration",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Supplies blood to urinary system for filtration and waste removal. Verified by physiology literature.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources (NCBI, PubMed)"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "human_body",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": []
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {}
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "none",
+    "resource_requirements": {}
+  },
+  "version": "1.0+2025-09-30",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": ["https://www.ncbi.nlm.nih.gov/books/NBK279393/", "https://en.wikipedia.org/wiki/Circulatory_system"],
+    "analysis_date": "2025-09-30",
+    "confidence_level": "high"
+  },
+  "implementation_status": "existing",
+  "verification_notes": "Based on established anatomical and physiological sources.",
+  "justification": {
+    "rationale": "Standard anatomical model; all interfaces are well-documented in literature.",
+    "standards_reference": "Gray's Anatomy, NCBI, PubMed",
+    "best_practices_reference": "",
+    "examples": "Gas exchange, hormone transport, blood filtration",
+    "trade_offs": "None; follows biological reality."
+  }
+}

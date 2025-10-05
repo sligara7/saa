@@ -1,0 +1,80 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Cosmic Structure System",
+  "service_id": "universe.cosmic_structure",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Organizes and arranges matter into increasingly large configurations across the universe.",
+  "dependencies": ["universe.matter_energy", "universe.fundamental_forces"],
+  "interfaces": [
+    {
+      "name": "Stellar and Planetary Systems",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Processes matter and energy, supporting complex internal dynamics. Components: Stars, planets, moons, asteroids, comets.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    },
+    {
+      "name": "Galaxies",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Aggregates stellar and planetary systems into gravitationally bound collections. Components: Stars, stellar systems, gas, dust, dark matter halos.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    },
+    {
+      "name": "Galaxy Clusters and Superclusters",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Arranges galaxies into larger, gravitationally interacting groups. Components: Galaxy groups, clusters, hot intracluster gas.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    },
+    {
+      "name": "Cosmic Web",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Forms the largest known organization of matter, creating filaments and voids. Components: Galaxy clusters, superclusters, intergalactic medium.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "Universe",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": []
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {}
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "none",
+    "resource_requirements": {}
+  },
+  "version": "1.0+2025-09-30",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": []
+  }
+}

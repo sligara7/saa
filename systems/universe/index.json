@@ -1,0 +1,16 @@
+{
+  "fundamental_forces": "/home/asligar/git_projects/saa/systems/universe/fundamental_forces/service_architecture.json",
+  "fundamental_forces.gravity": "/home/asligar/git_projects/saa/systems/universe/fundamental_forces/gravity/service_architecture.json",
+  "fundamental_forces.electromagnetism": "/home/asligar/git_projects/saa/systems/universe/fundamental_forces/electromagnetism/service_architecture.json",
+  "fundamental_forces.strong_nuclear_force": "/home/asligar/git_projects/saa/systems/universe/fundamental_forces/strong_nuclear_force/service_architecture.json",
+  "fundamental_forces.weak_nuclear_force": "/home/asligar/git_projects/saa/systems/universe/fundamental_forces/weak_nuclear_force/service_architecture.json",
+  "matter_energy": "/home/asligar/git_projects/saa/systems/universe/matter_energy/service_architecture.json",
+  "matter_energy.ordinary_matter": "/home/asligar/git_projects/saa/systems/universe/matter_energy/ordinary_matter/service_architecture.json",
+  "matter_energy.dark_matter": "/home/asligar/git_projects/saa/systems/universe/matter_energy/dark_matter/service_architecture.json",
+  "matter_energy.dark_energy": "/home/asligar/git_projects/saa/systems/universe/matter_energy/dark_energy/service_architecture.json",
+  "cosmic_structure": "/home/asligar/git_projects/saa/systems/universe/cosmic_structure/service_architecture.json",
+  "cosmic_structure.stellar_planetary_systems": "/home/asligar/git_projects/saa/systems/universe/cosmic_structure/stellar_planetary_systems/service_architecture.json",
+  "cosmic_structure.galaxies": "/home/asligar/git_projects/saa/systems/universe/cosmic_structure/galaxies/service_architecture.json",
+  "cosmic_structure.galaxy_clusters_superclusters": "/home/asligar/git_projects/saa/systems/universe/cosmic_structure/galaxy_clusters_superclusters/service_architecture.json",
+  "cosmic_structure.cosmic_web": "/home/asligar/git_projects/saa/systems/universe/cosmic_structure/cosmic_web/service_architecture.json"
+}

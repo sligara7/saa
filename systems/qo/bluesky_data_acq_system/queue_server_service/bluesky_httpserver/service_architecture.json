@@ -1,0 +1,98 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Bluesky HTTP Server",
+  "service_id": "bluesky_httpserver",
+  "hierarchical_tier": "tier_2_components",
+  "component_classification": "service",
+  "purpose": "HTTP/React web interface and API gateway for queue management. Provides REST API endpoints and serves the web interface for queue operations.",
+  "dependencies": [
+    "bluesky_queueserver"
+  ],
+  "interfaces": [
+    {
+      "name": "HTTP REST API",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "indirect",
+      "path": "/api",
+      "method": "GET",
+      "description": "REST API endpoints for queue management operations (proxied through nginx)",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual bluesky-httpserver REST API implementation"
+    },
+    {
+      "name": "React Web Interface",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "indirect",
+      "path": "/",
+      "method": "GET",
+      "description": "Web interface for queue management and experiment control (served through nginx)",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual React interface in bluesky-httpserver"
+    },
+    {
+      "name": "ZMQ to Queue Server",
+      "interface_type": "message",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "ZMQ communication with bluesky-queueserver for queue operations",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual ZMQ interface between bluesky-httpserver and bluesky-queueserver"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "queue_server_service",
+  "security": {
+    "api_key_authentication": true,
+    "ssl_tls": false,
+    "additional_requirements": [
+      "API key authentication for queue operations",
+      "SSL/TLS termination handled by nginx reverse proxy"
+    ]
+  },
+  "deployment": {
+    "ansible_managed": true,
+    "systemd_service": true,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {
+      "service_name": "bluesky-httpserver systemd service",
+      "port": "Internal port behind nginx reverse proxy",
+      "interface": "HTTP REST API and web interface"
+    }
+  },
+  "performance": {
+    "expected_load": "medium",
+    "scaling_strategy": "horizontal",
+    "resource_requirements": {
+      "description": "Web request handling and API gateway functionality",
+      "concurrent_users": "Multiple remote users accessing queue interface"
+    }
+  },
+  "version": "1.0+2025-10-02",
+  "source_references": {
+    "github_repo": "https://github.com/bluesky/bluesky-httpserver",
+    "documentation_links": [
+      "https://blueskyproject.io/bluesky-httpserver/"
+    ],
+    "analysis_date": "2025-10-02",
+    "confidence_level": "high"
+  },
+  "implementation_status": "existing",
+  "verification_notes": "Based on actual bluesky-httpserver implementation and deployment configuration",
+  "justification": {
+    "rationale": "Provides HTTP/web interface layer while maintaining separation from core queue engine",
+    "standards_reference": "REST API patterns for web service interfaces",
+    "best_practices_reference": "API gateway pattern separating web interface from business logic",
+    "examples": "Similar to web API gateways in microservices architectures",
+    "trade_offs": "Additional HTTP layer vs. web accessibility and API standardization"
+  }
+}

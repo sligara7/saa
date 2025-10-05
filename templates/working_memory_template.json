@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "last_updated": "",
+  "system_context": {
+    "system_name": "",
+    "current_step": "",
+    "working_directory": "",
+    "active_services": [],
+    "pending_tasks": []
+  },
+  "context_state": {
+    "definitions_loaded": false,
+    "templates_verified": false,
+    "system_validated": false,
+    "last_refresh": "",
+    "operations_since_refresh": 0
+  },
+  "critical_context": {
+    "constraints": [],
+    "decisions": [],
+    "issues": []
+  },
+  "validation_state": {
+    "interface_consistency": {
+      "last_checked": "",
+      "status": "",
+      "issues": []
+    },
+    "resource_isolation": {
+      "last_checked": "",
+      "status": "",
+      "issues": []
+    },
+    "dependency_cycles": {
+      "last_checked": "",
+      "status": "",
+      "issues": []
+    }
+  },
+  "refresh_triggers": {
+    "operation_count": 7,
+    "time_window_minutes": 20,
+    "degradation_indicators": [
+      "template_violations",
+      "naming_inconsistencies",
+      "forgotten_constraints",
+      "repetitive_questions"
+    ]
+  }
+}

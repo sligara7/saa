@@ -1,0 +1,47 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Strong Nuclear Force",
+  "service_id": "universe.fundamental_forces.strong_nuclear_force",
+  "hierarchical_tier": "tier_2_components",
+  "component_classification": "service",
+  "purpose": "Binds atomic nuclei together, ensuring the stability of matter.",
+  "dependencies": ["universe.matter_energy"],
+  "interfaces": [
+    {
+      "name": "Strong Nuclear Interaction",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "The strong nuclear force is the fundamental force that binds protons and neutrons together in atomic nuclei, overcoming the repulsive electromagnetic force between protons.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources. See: https://en.wikipedia.org/wiki/Strong_interaction, https://www.britannica.com/science/strong-force"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "Fundamental Forces System",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": []
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {}
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "none",
+    "resource_requirements": {}
+  },
+  "version": "1.0+2025-09-30",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": ["https://en.wikipedia.org/wiki/Strong_interaction", "https://www.britannica.com/science/strong-force"]
+  }
+}

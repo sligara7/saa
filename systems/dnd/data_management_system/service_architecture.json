@@ -1,0 +1,173 @@
+{
+  "uaf_version": "1.2",
+  "uaf_standards": {
+    "dmm": "ISO/IEC 19540-1:2022",
+    "uafml": "ISO/IEC 19540-2:2022"
+  },
+  "service_name": "D&D Data Management System",
+  "service_id": "data_management_system",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Manage data persistence, multi-user access, version control, and conflict resolution for the D&D platform's distributed state",
+  "applicable_viewpoints": [
+    {
+      "viewpoint": "operational",
+      "concern": "Data management workflow",
+      "key_views": ["State Management", "Version Control"],
+      "stakeholders": ["Data Engineers", "System Operators"]
+    },
+    {
+      "viewpoint": "services",
+      "concern": "Data access interfaces",
+      "key_views": ["Storage API", "Version API"],
+      "stakeholders": ["Service Developers", "Integration Engineers"]
+    },
+    {
+      "viewpoint": "resources",
+      "concern": "Data persistence patterns",
+      "key_views": ["Storage Model", "Access Patterns"],
+      "stakeholders": ["Database Administrators", "Storage Engineers"]
+    }
+  ],
+  "service_resource_relationships": [
+    {
+      "resource_type": "State Store",
+      "relationship": "provides",
+      "capability": "State Persistence",
+      "resource_performer": "PostgreSQL"
+    },
+    {
+      "resource_type": "Version Control",
+      "relationship": "provides",
+      "capability": "History Tracking",
+      "resource_performer": "Git-like Engine"
+    },
+    {
+      "resource_type": "Cache Layer",
+      "relationship": "provides",
+      "capability": "State Caching",
+      "resource_performer": "Redis"
+    }
+  ],
+  "dependencies": [
+    "character_management_system",
+    "campaign_management_system",
+    "integration_system"
+  ],
+  "interfaces": [
+    {
+      "name": "state_management",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/v2/data/state",
+      "method": "PUT",
+      "description": "Update and manage distributed state",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Based on feature summary - Data Management",
+      "information_element_flows": [
+        "state_update",
+        "update_result"
+      ]
+    },
+    {
+      "name": "version_control",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/v2/data/versions",
+      "method": "POST",
+      "description": "Manage state versions and history",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Based on feature summary - Version Control",
+      "information_element_flows": [
+        "version_request",
+        "version_data"
+      ]
+    },
+    {
+      "name": "conflict_resolution",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/v2/data/conflicts",
+      "method": "POST",
+      "description": "Resolve data conflicts between concurrent updates",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Based on feature summary - Conflict Resolution",
+      "information_element_flows": [
+        "conflict_data",
+        "resolution_result"
+      ]
+    },
+    {
+      "name": "data_events",
+      "interface_type": "message",
+      "communication_pattern": "asynchronous",
+      "dependency_type": "indirect",
+      "description": "Publish data state and version events",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Based on feature summary - Event System",
+      "information_element_flows": [
+        "state_event",
+        "version_event"
+      ]
+    }
+  ],
+  "is_external": false,
+  "parent_system": "dnd",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": true,
+    "additional_requirements": [
+      "OAuth2 JWT via gateway",
+      "RBAC",
+      "Data encryption"
+    ]
+  },
+  "deployment": {
+    "ansible_managed": true,
+    "systemd_service": false,
+    "python_uvicorn": true,
+    "docker_container": true,
+    "additional_info": {
+      "postgresql": "18.0",
+      "redis": "8.0.0",
+      "python": "3.13.7"
+    }
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "horizontal",
+    "resource_requirements": {
+      "state_update_latency": "< 100ms",
+      "version_query_latency": "< 200ms",
+      "conflict_resolution_latency": "< 500ms"
+    }
+  },
+  "version": "1.0+2025-10-05",
+  "source_references": {
+    "documentation_links": [
+      "postgresql.org/docs/18",
+      "redis.io/documentation"
+    ],
+    "analysis_date": "2025-10-05",
+    "confidence_level": "high"
+  },
+  "implementation_status": "recommended",
+  "verification_notes": "Required for distributed state management",
+  "justification": {
+    "rationale": "Dedicated data management system needed for multi-user state coordination",
+    "standards_reference": "UAF 1.2 Level 1 system requirements - data management",
+    "best_practices_reference": "Distributed state management with version control",
+    "trade_offs": "Additional complexity balanced against data integrity needs"
+  }
+}

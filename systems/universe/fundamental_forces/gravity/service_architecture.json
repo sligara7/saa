@@ -1,0 +1,47 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Gravity",
+  "service_id": "universe.fundamental_forces.gravity",
+  "hierarchical_tier": "tier_2_components",
+  "component_classification": "service",
+  "purpose": "Regulates the motion of planets, stars, and galaxies; drives formation of large-scale structures.",
+  "dependencies": ["universe.matter_energy", "universe.cosmic_structure"],
+  "interfaces": [
+    {
+      "name": "Gravitational Interaction",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Gravity is the force by which a planet or other body draws objects toward its center. It governs the motion of celestial bodies and the structure of the universe.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Existing - verified by authoritative sources. See: https://en.wikipedia.org/wiki/Gravity, https://www.nasa.gov/audience/forstudents/5-8/features/nasa-knows/what-is-gravity-58.html"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "Fundamental Forces System",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": []
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {}
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "none",
+    "resource_requirements": {}
+  },
+  "version": "1.0+2025-09-30",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": ["https://en.wikipedia.org/wiki/Gravity", "https://www.nasa.gov/audience/forstudents/5-8/features/nasa-knows/what-is-gravity-58.html"]
+  }
+}

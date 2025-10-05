@@ -1,0 +1,35 @@
+digraph campaign_management_system {
+  // Service nodes
+  story_engine [label="Story Engine\n(Core Narrative Processing)"];
+  plot_generator [label="Plot Generator\n(AI-Driven Content)"];
+  branch_manager [label="Branch Manager\n(Version Control)"];
+  
+  // External resource nodes
+  postgres_story [label="PostgreSQL 18\n(Story Store)" shape=cylinder];
+  postgres_plot [label="PostgreSQL 18\n(Plot Store)" shape=cylinder];
+  ai_generator [label="AI Content Generator" shape=cloud];
+  rules_engine [label="D&D 5e Rules Engine" shape=component];
+  theme_analyzer [label="Theme Analyzer" shape=component];
+  message_hub [label="Message Hub" shape=diamond];
+  
+  // Service dependencies
+  story_engine -> branch_manager [label="depends on"];
+  story_engine -> plot_generator [label="depends on"];
+  plot_generator -> story_engine [label="depends on"];
+  plot_generator -> branch_manager [label="depends on"];
+  
+  // Resource relationships
+  story_engine -> postgres_story [label="persists state"];
+  story_engine -> ai_generator [label="uses for content"];
+  story_engine -> rules_engine [label="validates against"];
+  story_engine -> message_hub [label="publishes events"];
+  
+  plot_generator -> postgres_plot [label="persists state"];
+  plot_generator -> ai_generator [label="generates content"];
+  plot_generator -> theme_analyzer [label="validates themes"];
+  plot_generator -> message_hub [label="publishes events"];
+  
+  // HTTP interfaces shown as labels
+  story_engine -> plot_generator [label="PUT /state\nPOST /adapt" color=blue];
+  plot_generator -> story_engine [label="POST /generate\nPOST /adapt" color=blue];
+}

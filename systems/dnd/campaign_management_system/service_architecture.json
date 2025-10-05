@@ -1,0 +1,145 @@
+{
+  "uaf_version": "1.2",
+  "uaf_standards": {
+    "dmm": "ISO/IEC 19540-1:2022",
+    "uafml": "ISO/IEC 19540-2:2022"
+  },
+  "service_name": "Campaign Creation & Management System",
+  "service_id": "campaign_management_system",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Generate, adapt, and manage campaigns with chapters, branching narratives, party-aware scaling, and trajectory updates.",
+  "applicable_viewpoints": [
+    {
+      "viewpoint": "operational",
+      "concern": "Campaign lifecycle and story development",
+      "key_views": ["Campaign Generation", "Story Adaptation"],
+      "stakeholders": ["Dungeon Masters", "Story Writers"]
+    },
+    {
+      "viewpoint": "services",
+      "concern": "Campaign service interfaces and events",
+      "key_views": ["Service API", "Event Distribution"],
+      "stakeholders": ["Service Developers", "Integration Engineers"]
+    },
+    {
+      "viewpoint": "resources",
+      "concern": "Campaign data and narrative structures",
+      "key_views": ["Story Graph", "Chapter Organization"],
+      "stakeholders": ["Content Designers", "Data Architects"]
+    }
+  ],
+  "service_resource_relationships": [
+    {
+      "resource_type": "Campaign Store",
+      "relationship": "provides",
+      "capability": "Persistent Campaign Storage",
+      "resource_performer": "PostgreSQL 18"
+    },
+    {
+      "resource_type": "LLM Service",
+      "relationship": "consumes",
+      "capability": "Story Generation",
+      "resource_performer": "AI Content Generator"
+    },
+    {
+      "resource_type": "Rules Engine",
+      "relationship": "consumes",
+      "capability": "Encounter Balancing",
+      "resource_performer": "dd5e_rules_engine"
+    }
+  ],
+  "digital_transformation_aspects": {
+    "ai_driven_storytelling": {
+      "description": "AI-powered campaign generation and adaptation",
+      "capabilities": ["Dynamic plot generation", "Character arc management", "Encounter scaling"]
+    },
+    "branching_narratives": {
+      "description": "Git-like version control for story paths",
+      "capabilities": ["Decision tracking", "Timeline management", "Story merging"]
+    }
+  },
+  "dependencies": [
+    "integration_system",
+    "content_generation_system",
+    "data_management_system"
+  ],
+  "interfaces": [
+    {
+      "name": "story_engine",
+      "interface_type": "service_dependency",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "AI-driven story generation and adaptation engine",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Based on LLM integration requirements",
+      "information_element_flows": [
+        "data_exchange",
+        "configuration_data",
+        "event_notification"
+      ],
+      "service_resource_relationship": "implements",
+      "applicable_viewpoints": ["services", "resources"]
+    },
+    {
+      "name": "create_campaign",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/v2/campaigns/create",
+      "method": "POST",
+      "description": "Create a new campaign skeleton and initial chapters.",
+      "auth_required": true,
+      "version": "2.0",
+      "implementation_status": "recommended",
+      "source_verification": "Feature summary endpoints"
+    },
+    {
+      "name": "adapt_campaign",
+      "interface_type": "http_endpoint",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "path": "/api/v2/campaigns/{id}/adapt",
+      "method": "PUT",
+      "description": "Adapt campaign trajectory based on session outcomes.",
+      "auth_required": true,
+      "version": "2.0",
+      "implementation_status": "recommended",
+      "source_verification": "Feature summary endpoints"
+    },
+    {
+      "name": "campaign_events",
+      "interface_type": "message",
+      "communication_pattern": "asynchronous",
+      "dependency_type": "indirect",
+      "description": "Publish campaign updates to Message Hub.",
+      "auth_required": true,
+      "version": "1.0",
+      "implementation_status": "recommended",
+      "source_verification": "Message Hub Architecture"
+    },
+    {
+      "name": "postgres_storage",
+      "interface_type": "storage_requirement",
+      "communication_pattern": "synchronous",
+      "dependency_type": "external",
+      "description": "Persist campaign definitions, chapters, and trajectories in PostgreSQL 18.",
+      "auth_required": true,
+      "version": "18",
+      "implementation_status": "recommended",
+      "source_verification": "User-provided stack versions"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "dnd_services_platform",
+  "security": {"api_key_authentication": false, "ssl_tls": true, "additional_requirements": ["OAuth2 JWT", "RBAC"]},
+  "deployment": {"ansible_managed": true, "systemd_service": false, "python_uvicorn": true, "docker_container": true, "additional_info": {"fastapi": "0.118.0", "python": "3.13.7"}},
+  "performance": {"expected_load": "medium", "scaling_strategy": "horizontal", "resource_requirements": {}},
+  "version": "1.0+2025-10-04",
+  "source_references": {"documentation_links": [], "analysis_date": "2025-10-04", "confidence_level": "medium"},
+  "implementation_status": "recommended",
+  "verification_notes": "No source repos; endpoints from feature summary",
+  "justification": {"rationale": "Service boundary aligns to campaign lifecycle", "best_practices_reference": "FastAPI REST with message hub events"}
+}

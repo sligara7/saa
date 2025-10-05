@@ -1,0 +1,107 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Bluesky Queue Server",
+  "service_id": "bluesky_queueserver",
+  "hierarchical_tier": "tier_2_components",
+  "component_classification": "service",
+  "purpose": "Core queue management and plan execution engine. Manages the experiment queue state, executes bluesky plans, and provides the fundamental queue operations.",
+  "dependencies": [
+    "redis",
+    "systemd_services"
+  ],
+  "interfaces": [
+    {
+      "name": "ZMQ Queue Management",
+      "interface_type": "message",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "ZMQ interface for queue management operations from bluesky-httpserver",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual bluesky-queueserver ZMQ implementation"
+    },
+    {
+      "name": "Redis State Storage",
+      "interface_type": "storage_requirement",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Persistent storage for queue state, plans, and metadata using Redis",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual Redis integration in bluesky-queueserver"
+    },
+    {
+      "name": "EPICS Channel Access",
+      "interface_type": "service_dependency",
+      "communication_pattern": "asynchronous",
+      "dependency_type": "external",
+      "description": "Direct EPICS/CA communication with IOCs for plan execution",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual bluesky EPICS integration"
+    },
+    {
+      "name": "Plan Profile Management",
+      "interface_type": "data_contract",
+      "communication_pattern": "synchronous",
+      "dependency_type": "direct",
+      "description": "Git-based deployment and management of experiment profiles and plans",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "existing",
+      "source_verification": "Based on actual profile_collection management in bluesky-queueserver"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "queue_server_service",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": [
+      "Internal component - security handled by bluesky-httpserver layer",
+      "File permissions for profile_collection directories"
+    ]
+  },
+  "deployment": {
+    "ansible_managed": true,
+    "systemd_service": true,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {
+      "service_name": "bluesky-queueserver systemd service",
+      "environment_setup": "Automated creation of environment and profile_collection directories",
+      "configuration": "Templated configuration files for reproducibility"
+    }
+  },
+  "performance": {
+    "expected_load": "medium",
+    "scaling_strategy": "vertical",
+    "resource_requirements": {
+      "constraint": "Single instance per beamline to maintain queue consistency",
+      "memory": "Queue state and plan metadata storage",
+      "cpu": "Plan execution and queue processing"
+    }
+  },
+  "version": "1.0+2025-10-02",
+  "source_references": {
+    "github_repo": "https://github.com/bluesky/bluesky-queueserver",
+    "documentation_links": [
+      "https://blueskyproject.io/bluesky-queueserver/"
+    ],
+    "analysis_date": "2025-10-02",
+    "confidence_level": "high"
+  },
+  "implementation_status": "existing",
+  "verification_notes": "Based on actual bluesky-queueserver implementation and deployment practices",
+  "justification": {
+    "rationale": "Core component providing the fundamental queue management capability",
+    "standards_reference": "ZMQ for reliable internal messaging",
+    "best_practices_reference": "Separation of queue engine from web interface enables independent scaling",
+    "examples": "Similar to job queue engines in distributed computing systems",
+    "trade_offs": "Single instance constraint vs. queue consistency requirements"
+  }
+}

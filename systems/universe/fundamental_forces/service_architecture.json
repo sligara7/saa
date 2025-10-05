@@ -1,0 +1,80 @@
+{
+  "template_version": "1.0",
+  "template_description": "Standard template for service_architecture.json files based on UAF definitions",
+  "service_name": "Fundamental Forces System",
+  "service_id": "universe.fundamental_forces",
+  "hierarchical_tier": "tier_1_systems",
+  "component_classification": "service",
+  "purpose": "Governs all interactions between matter and energy in the universe.",
+  "dependencies": ["universe.matter_energy"],
+  "interfaces": [
+    {
+      "name": "Gravity",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Regulates the motion of planets, stars, and galaxies; drives formation of large-scale structures.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    },
+    {
+      "name": "Electromagnetism",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Governs behavior of atoms, molecules, and light; dictates chemical reactions and structure of matter.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    },
+    {
+      "name": "Strong Nuclear Force",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Binds atomic nuclei together, ensuring stability of matter.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    },
+    {
+      "name": "Weak Nuclear Force",
+      "interface_type": "service_dependency",
+      "communication_pattern": "bidirectional",
+      "dependency_type": "direct",
+      "description": "Responsible for certain types of radioactive decay, such as beta decay.",
+      "auth_required": false,
+      "version": "1.0",
+      "implementation_status": "hypothetical",
+      "source_verification": "Educated guess - need verification"
+    }
+  ],
+  "is_external": false,
+  "parent_system": "Universe",
+  "security": {
+    "api_key_authentication": false,
+    "ssl_tls": false,
+    "additional_requirements": []
+  },
+  "deployment": {
+    "ansible_managed": false,
+    "systemd_service": false,
+    "python_uvicorn": false,
+    "docker_container": false,
+    "additional_info": {}
+  },
+  "performance": {
+    "expected_load": "high",
+    "scaling_strategy": "none",
+    "resource_requirements": {}
+  },
+  "version": "1.0+2025-09-30",
+  "source_references": {
+    "github_repo": "",
+    "documentation_links": []
+  }
+}
