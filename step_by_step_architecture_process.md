@@ -1,6 +1,3 @@
-
-
-
 # Step-by-Step: LLM-Driven Translation of System Descriptions to Service JSON Objects (System-Agnostic)
 
 ## Architectural Definitions
@@ -691,6 +688,17 @@ This process leverages an LLM agent and human collaboration to:
       - Each `service_architecture.json` contains all necessary information for independent development: complete functional requirements (SRD), validated interface contracts (ICD), and all deduced dependencies.
       - The artifacts are both machine-actionable (for LLMs/automation) and human-readable (for review, collaboration, and traceability).
       - **Independent Development Guarantee:** Teams can develop services independently according to their specifications, with confidence that system integration will succeed because all interface contracts have been validated and coordinated.
+   
+   - **Generate Interface Contract Documents (ICDs):**
+      - After interface deduction, run `generate_interface_contracts.py` to create detailed Interface Contract Documents (ICDs)
+      - Each ICD specifies complete input/output contracts, error handling, timing constraints, and integration test scenarios
+      - ICDs are system-agnostic and support software, biological, social, and mechanical systems
+      - Generated ICDs enable LLM-driven independent development with guaranteed integration success
+      ```bash
+      python3 /tools/generate_interface_contracts.py /systems/<system_name>/
+      # Creates /systems/<system_name>/interfaces/<interface_id>.json for each interface
+      # Creates interfaces_summary.json with overview of all interface contracts
+      ```
 
 3. **Parse High-Level Architecture Constraints (Preparation for Analysis):**
     - Read and parse `ARCHITECTURE.json` (or equivalent) for global system constraints and requirements
@@ -1038,1059 +1046,323 @@ All artifacts designed for both machine-actionability (LLM processing) and human
 
 ---
 
+## System-of-Systems Graph Validation and Automated Issue Resolution
+
+### Purpose and Workflow
+
+The step involving `/tools/system_of_systems_graph.py` is primarily designed for the LLM agent to:
+
+1. **Generate and review a comprehensive, machine-readable `system_of_systems_graph.json` file** representing the entire architecture as a directed graph (nodes = services/components, edges = interfaces/dependencies).
+2. **Automated Architecture Validation**:
+   - The LLM agent parses the JSON graph to identify architectural errors, issues, and gaps:
+     - Missing or ambiguous interfaces
+     - Unresolved dependencies
+     - Circular dependencies
+     - Incomplete communication paths
+     - Security boundary violations
+     - Performance bottlenecks
+     - Orphaned nodes (unused services/components)
+     - Inconsistent message formats or protocols
+   - The agent uses graph algorithms (e.g., cycle detection, path analysis, dependency resolution) to systematically validate the architecture.
+3. **Automated Issue Resolution**:
+   - For each identified risk/issue/gap, the LLM agent:
+     - Documents the problem in a machine-actionable format (e.g., `architecture_issues.json`)
+     - Proposes and applies targeted fixes:
+       - Adds missing interfaces or clarifies ambiguous ones
+       - Resolves circular dependencies (e.g., by introducing message queues or refactoring service responsibilities)
+       - Updates service specifications to close gaps
+       - Harmonizes message formats and protocols
+       - Adjusts security boundaries and access controls
+       - Reassigns or removes orphaned nodes
+     - Updates all affected artifacts (service_architecture.json, integration_matrix.json, etc.)
+   - The process iterates until the graph is free of critical issues and all services are fully integrated.
+4. **Human-Readable Visualization (Optional)**:
+   - The visual graph output (e.g., PNG, SVG) is generated for human review **after** the architecture is validated and finalized.
+   - This artifact is for documentation, presentation, and collaborative review, but is not required for automated validation or issue resolution.
+
+### Key Principles
+- **Machine-Readable First**: The JSON graph is the authoritative source for architecture validation and automated issue resolution.
+- **Automated Correction**: The LLM agent is responsible for identifying and resolving all architectural issues before human review.
+- **Iterative Improvement**: The process repeats until the architecture is robust, integrated, and free of critical gaps.
+- **Human Visualization is Secondary**: Visual artifacts are generated only after the architecture is validated and are not used for automated correction.
 
 ---
 
-## LLM Self-Validation Framework for Generated Artifacts
+## Process Completion and Build Preparation
 
-### Critical Trust and Quality Assurance Challenge
+When the step-by-step architecture process is complete, three critical final activities must be performed to prepare for the actual service/system implementation phase:
 
-**The Challenge**: With expanded artifact generation in Step 8, there's an inherent "trust gap" where humans may lack domain expertise to validate complex technical specifications (API contracts, infrastructure requirements, security configurations, etc.). **How can we ensure LLM-generated artifacts are not just syntactically correct, but functionally viable for real-world integrated systems?**
+### 1. Artifact Cleanup and Organization
 
-### Multi-Layer Validation Strategy
+**Purpose**: Remove temporary files and organize final deliverables for the build phase.
 
-#### 1. **Semantic Consistency Validation** (Automated)
-```python
-class SemanticValidator:
-    """Validates that generated artifacts make logical sense together"""
-    
-    def validate_api_contract_coherence(self, service_spec, api_contracts):
-        """Ensure API contracts align with service capabilities"""
-        issues = []
-        
-        # Check that all service interfaces have corresponding API definitions
-        declared_interfaces = service_spec.get("interfaces", [])
-        api_endpoints = api_contracts.get("endpoints", [])
-        
-        for interface in declared_interfaces:
-            if not self.has_matching_api_endpoint(interface, api_endpoints):
-                issues.append(f"Interface '{interface['name']}' has no API implementation")
-        
-        # Validate data flow consistency
-        for endpoint in api_endpoints:
-            if not self.validate_data_flow(endpoint, service_spec):
-                issues.append(f"Endpoint '{endpoint['path']}' data flow inconsistent with service model")
-        
-        return issues
-    
-    def validate_infrastructure_resource_alignment(self, service_spec, infrastructure_spec):
-        """Ensure infrastructure specs match service requirements"""
-        issues = []
-        
-        # Check CPU/Memory requirements against service complexity
-        service_complexity = self.calculate_service_complexity(service_spec)
-        resource_allocation = infrastructure_spec.get("resources", {})
-        
-        if self.resources_insufficient_for_complexity(service_complexity, resource_allocation):
-            issues.append("Infrastructure resources may be insufficient for service complexity")
-        
-        # Validate network requirements
-        service_interfaces = len(service_spec.get("interfaces", []))
-        network_config = infrastructure_spec.get("networking", {})
-        
-        if not self.network_supports_interfaces(service_interfaces, network_config):
-            issues.append("Network configuration doesn't support all service interfaces")
-        
-        return issues
-    
-    def validate_cross_service_integration(self, service_a_spec, service_b_spec):
-        """Ensure two services can actually integrate as specified"""
-        issues = []
-        
-        # Find interfaces between services
-        a_to_b_interfaces = self.find_interfaces_between(service_a_spec, service_b_spec)
-        
-        for interface in a_to_b_interfaces:
-            # Check protocol compatibility
-            if not self.protocols_compatible(interface["source_protocol"], interface["target_protocol"]):
-                issues.append(f"Protocol mismatch: {interface['name']}")
-            
-            # Check data format compatibility  
-            if not self.data_formats_compatible(interface["source_format"], interface["target_format"]):
-                issues.append(f"Data format incompatibility: {interface['name']}")
-            
-            # Check authentication compatibility
-            if not self.auth_mechanisms_compatible(interface["source_auth"], interface["target_auth"]):
-                issues.append(f"Authentication mismatch: {interface['name']}")
-        
-        return issues
-```
-
-#### 2. **Functional Completeness Verification** (Automated)
-```python
-class CompletenessValidator:
-    """Ensures generated artifacts provide complete implementation guidance"""
-    
-    def validate_api_completeness(self, api_contracts):
-        """Check that API specifications are implementation-ready"""
-        completeness_issues = []
-        
-        for endpoint in api_contracts.get("endpoints", []):
-            # Check request/response schema completeness
-            if not self.has_complete_request_schema(endpoint):
-                completeness_issues.append(f"Incomplete request schema: {endpoint['path']}")
-            
-            if not self.has_complete_response_schema(endpoint):
-                completeness_issues.append(f"Incomplete response schema: {endpoint['path']}")
-            
-            # Check error handling completeness
-            if not self.has_comprehensive_error_handling(endpoint):
-                completeness_issues.append(f"Incomplete error handling: {endpoint['path']}")
-            
-            # Check authentication/authorization specification
-            if not self.has_clear_auth_requirements(endpoint):
-                completeness_issues.append(f"Unclear auth requirements: {endpoint['path']}")
-        
-        return completeness_issues
-    
-    def validate_data_model_completeness(self, data_models):
-        """Ensure data models support all required operations"""
-        issues = []
-        
-        for model in data_models.get("models", []):
-            # Check for CRUD operation support
-            if not self.supports_required_operations(model):
-                issues.append(f"Model '{model['name']}' missing required operations")
-            
-            # Check for relationship consistency
-            if not self.relationships_are_bidirectional(model, data_models):
-                issues.append(f"Model '{model['name']}' has incomplete relationships")
-            
-            # Check for validation rules
-            if not self.has_adequate_validation(model):
-                issues.append(f"Model '{model['name']}' lacks validation rules")
-        
-        return issues
-    
-    def validate_infrastructure_completeness(self, infrastructure_spec):
-        """Ensure infrastructure specs cover all deployment needs"""
-        issues = []
-        
-        required_components = [
-            "compute_resources", "storage_requirements", "network_configuration",
-            "security_policies", "monitoring_setup", "backup_strategy"
-        ]
-        
-        for component in required_components:
-            if component not in infrastructure_spec:
-                issues.append(f"Missing infrastructure component: {component}")
-            elif not self.component_adequately_specified(infrastructure_spec[component]):
-                issues.append(f"Inadequate specification for: {component}")
-        
-        return issues
-```
-
-#### 3. **Industry Standards Compliance** (RAG-Enhanced)
-```python
-class StandardsComplianceValidator:
-    """Validates against industry best practices and standards"""
-    
-    def __init__(self, rag_system):
-        self.rag_system = rag_system
-        
-    def validate_api_standards_compliance(self, api_contracts):
-        """Check compliance with REST/OpenAPI best practices"""
-        
-        # Query RAG for current API standards
-        current_standards = self.rag_system.query(
-            "REST API design best practices OpenAPI specification standards 2024"
-        )
-        
-        compliance_issues = []
-        
-        for endpoint in api_contracts.get("endpoints", []):
-            # Check HTTP method usage
-            if not self.follows_rest_conventions(endpoint, current_standards):
-                compliance_issues.append(f"REST convention violation: {endpoint['path']}")
-            
-            # Check status code usage
-            if not self.uses_appropriate_status_codes(endpoint, current_standards):
-                compliance_issues.append(f"Inappropriate status codes: {endpoint['path']}")
-            
-            # Check security headers
-            if not self.includes_security_headers(endpoint, current_standards):
-                compliance_issues.append(f"Missing security headers: {endpoint['path']}")
-        
-        return compliance_issues
-    
-    def validate_security_standards(self, all_service_specs):
-        """Validate against current security frameworks"""
-        
-        security_standards = self.rag_system.query(
-            "cybersecurity best practices API security OWASP top 10 2024"
-        )
-        
-        security_issues = []
-        
-        for service_spec in all_service_specs:
-            # Check authentication mechanisms
-            if not self.uses_modern_auth(service_spec, security_standards):
-                security_issues.append(f"Outdated auth mechanism: {service_spec['name']}")
-            
-            # Check for encryption requirements
-            if not self.adequate_encryption(service_spec, security_standards):
-                security_issues.append(f"Insufficient encryption: {service_spec['name']}")
-            
-            # Check for input validation
-            if not self.comprehensive_input_validation(service_spec, security_standards):
-                security_issues.append(f"Inadequate input validation: {service_spec['name']}")
-        
-        return security_issues
-```
-
-#### 4. **System Integration Simulation** (Advanced)
-```python
-class IntegrationSimulator:
-    """Simulates system behavior to detect integration issues"""
-    
-    def simulate_end_to_end_workflows(self, system_specs, test_scenarios):
-        """Simulate complete workflows to find integration gaps"""
-        
-        simulation_results = []
-        
-        for scenario in test_scenarios:
-            try:
-                # Trace through the workflow
-                execution_path = self.trace_workflow_execution(scenario, system_specs)
-                
-                # Check for bottlenecks
-                bottlenecks = self.identify_bottlenecks(execution_path)
-                
-                # Check for failure points
-                failure_points = self.identify_failure_points(execution_path)
-                
-                # Check for data inconsistencies
-                data_issues = self.check_data_consistency(execution_path)
-                
-                simulation_results.append({
-                    "scenario": scenario["name"],
-                    "execution_path": execution_path,
-                    "bottlenecks": bottlenecks,
-                    "failure_points": failure_points,
-                    "data_issues": data_issues,
-                    "success": len(bottlenecks) == 0 and len(failure_points) == 0 and len(data_issues) == 0
-                })
-                
-            except Exception as e:
-                simulation_results.append({
-                    "scenario": scenario["name"],
-                    "error": str(e),
-                    "success": False
-                })
-        
-        return simulation_results
-    
-    def validate_performance_characteristics(self, system_specs):
-        """Predict system performance based on specifications"""
-        
-        performance_analysis = {}
-        
-        for service_name, service_spec in system_specs.items():
-            # Estimate response times
-            estimated_latency = self.estimate_service_latency(service_spec)
-            
-            # Estimate throughput
-            estimated_throughput = self.estimate_service_throughput(service_spec)
-            
-            # Identify potential scaling issues
-            scaling_concerns = self.identify_scaling_concerns(service_spec)
-            
-            performance_analysis[service_name] = {
-                "estimated_latency_ms": estimated_latency,
-                "estimated_throughput_rps": estimated_throughput,
-                "scaling_concerns": scaling_concerns
-            }
-        
-        return performance_analysis
-```
-
-#### 5. **Deployment Feasibility Analysis** (Automated)
-```python
-class DeploymentValidator:
-    """Validates that generated specs can actually be deployed"""
-    
-    def validate_resource_requirements(self, infrastructure_specs):
-        """Check if resource requirements are realistic"""
-        
-        feasibility_issues = []
-        
-        total_cpu = sum(spec.get("cpu_cores", 0) for spec in infrastructure_specs.values())
-        total_memory = sum(spec.get("memory_gb", 0) for spec in infrastructure_specs.values())
-        total_storage = sum(spec.get("storage_gb", 0) for spec in infrastructure_specs.values())
-        
-        # Check against reasonable limits
-        if total_cpu > 100:  # Example threshold
-            feasibility_issues.append(f"Total CPU requirement ({total_cpu} cores) may be excessive")
-        
-        if total_memory > 500:  # Example threshold  
-            feasibility_issues.append(f"Total memory requirement ({total_memory} GB) may be excessive")
-        
-        # Check for resource conflicts
-        port_conflicts = self.check_port_conflicts(infrastructure_specs)
-        if port_conflicts:
-            feasibility_issues.extend(port_conflicts)
-        
-        return feasibility_issues
-    
-    def validate_dependency_availability(self, all_service_specs):
-        """Check that all dependencies can be satisfied"""
-        
-        dependency_issues = []
-        
-        # Build dependency graph
-        dependency_graph = self.build_dependency_graph(all_service_specs)
-        
-        # Check for circular dependencies
-        cycles = self.find_cycles(dependency_graph)
-        if cycles:
-            dependency_issues.extend([f"Circular dependency: {' -> '.join(cycle)}" for cycle in cycles])
-        
-        # Check for missing dependencies
-        missing_deps = self.find_missing_dependencies(dependency_graph, all_service_specs)
-        if missing_deps:
-            dependency_issues.extend([f"Missing dependency: {dep}" for dep in missing_deps])
-        
-        return dependency_issues
-```
-
-### Integrated Self-Validation Protocol
-
-#### Mandatory Validation Sequence for Step 8 Artifacts
-```python
-class ArtifactValidationOrchestrator:
-    """Orchestrates comprehensive validation of all generated artifacts"""
-    
-    def __init__(self, rag_system):
-        self.semantic_validator = SemanticValidator()
-        self.completeness_validator = CompletenessValidator()
-        self.standards_validator = StandardsComplianceValidator(rag_system)
-        self.integration_simulator = IntegrationSimulator()
-        self.deployment_validator = DeploymentValidator()
-    
-    def validate_all_artifacts(self, system_path):
-        """Run comprehensive validation on all generated artifacts"""
-        
-        print("🔍 STARTING COMPREHENSIVE ARTIFACT VALIDATION")
-        
-        # Load all artifacts
-        artifacts = self.load_all_artifacts(system_path)
-        
-        validation_report = {
-            "timestamp": datetime.now().isoformat(),
-            "system_name": artifacts["system_name"],
-            "validation_results": {},
-            "overall_status": "UNKNOWN",
-            "critical_issues": [],
-            "warnings": [],
-            "recommendations": []
-        }
-        
-        # 1. Semantic Consistency Validation
-        print("1️⃣ Validating semantic consistency...")
-        semantic_issues = self.validate_semantic_consistency(artifacts)
-        validation_report["validation_results"]["semantic_consistency"] = semantic_issues
-        
-        # 2. Functional Completeness
-        print("2️⃣ Validating functional completeness...")
-        completeness_issues = self.validate_completeness(artifacts)
-        validation_report["validation_results"]["completeness"] = completeness_issues
-        
-        # 3. Standards Compliance
-        print("3️⃣ Validating standards compliance...")
-        standards_issues = self.validate_standards_compliance(artifacts)
-        validation_report["validation_results"]["standards_compliance"] = standards_issues
-        
-        # 4. Integration Simulation
-        print("4️⃣ Running integration simulation...")
-        integration_results = self.simulate_integration(artifacts)
-        validation_report["validation_results"]["integration_simulation"] = integration_results
-        
-        # 5. Deployment Feasibility
-        print("5️⃣ Validating deployment feasibility...")
-        deployment_issues = self.validate_deployment_feasibility(artifacts)
-        validation_report["validation_results"]["deployment_feasibility"] = deployment_issues
-        
-        # Analyze overall status
-        validation_report["overall_status"] = self.determine_overall_status(validation_report)
-        validation_report["critical_issues"] = self.extract_critical_issues(validation_report)
-        validation_report["recommendations"] = self.generate_improvement_recommendations(validation_report)
-        
-        # Save validation report
-        self.save_validation_report(validation_report, system_path)
-        
-        return validation_report
-    
-    def determine_overall_status(self, validation_report):
-        """Determine if artifacts are ready for implementation"""
-        
-        results = validation_report["validation_results"]
-        
-        # Count critical issues
-        critical_count = 0
-        warning_count = 0
-        
-        for category, issues in results.items():
-            if isinstance(issues, list):
-                critical_count += len([i for i in issues if i.get("severity") == "critical"])
-                warning_count += len([i for i in issues if i.get("severity") == "warning"])
-        
-        if critical_count == 0:
-            return "READY_FOR_IMPLEMENTATION"
-        elif critical_count <= 3:
-            return "NEEDS_MINOR_FIXES"
-        else:
-            return "NEEDS_MAJOR_REVISION"
-```
-
-### Confidence Scoring and Uncertainty Tracking
-
-#### LLM Self-Assessment Framework
-```python
-class LLMSelfAssessment:
-    """Framework for LLMs to assess their own artifact quality"""
-    
-    def assess_artifact_confidence(self, artifact_type, generated_content, source_context):
-        """LLM assesses its own confidence in generated artifacts"""
-        
-        confidence_factors = {
-            "source_code_evidence": self.has_source_code_backing(generated_content, source_context),
-            "industry_standard_alignment": self.aligns_with_standards(generated_content),
-            "internal_consistency": self.is_internally_consistent(generated_content),
-            "completeness": self.is_complete(generated_content),
-            "complexity_appropriateness": self.matches_problem_complexity(generated_content, source_context)
-        }
-        
-        # Calculate weighted confidence score
-        weights = {
-            "source_code_evidence": 0.3,
-            "industry_standard_alignment": 0.25,
-            "internal_consistency": 0.2,
-            "completeness": 0.15,
-            "complexity_appropriateness": 0.1
-        }
-        
-        confidence_score = sum(
-            confidence_factors[factor] * weights[factor] 
-            for factor in confidence_factors
-        )
-        
-        # Generate uncertainty notes
-        uncertainty_notes = []
-        for factor, confident in confidence_factors.items():
-            if not confident:
-                uncertainty_notes.append(f"Low confidence in {factor}")
-        
-        return {
-            "confidence_score": confidence_score,
-            "confidence_level": self.categorize_confidence(confidence_score),
-            "uncertainty_notes": uncertainty_notes,
-            "recommended_validation": self.recommend_validation_approach(confidence_score, uncertainty_notes)
-        }
-    
-    def categorize_confidence(self, score):
-        """Categorize confidence score into levels"""
-        if score >= 0.8:
-            return "HIGH"
-        elif score >= 0.6:
-            return "MEDIUM"
-        elif score >= 0.4:
-            return "LOW"
-        else:
-            return "VERY_LOW"
-    
-    def recommend_validation_approach(self, confidence_score, uncertainty_notes):
-        """Recommend specific validation approaches based on confidence"""
-        
-        recommendations = []
-        
-        if confidence_score < 0.6:
-            recommendations.append("REQUIRES_HUMAN_REVIEW")
-        
-        if "source_code_evidence" in uncertainty_notes:
-            recommendations.append("NEEDS_SOURCE_CODE_VERIFICATION")
-        
-        if "industry_standard_alignment" in uncertainty_notes:
-            recommendations.append("REQUIRES_STANDARDS_COMPLIANCE_CHECK")
-        
-        if "internal_consistency" in uncertainty_notes:
-            recommendations.append("NEEDS_CONSISTENCY_VALIDATION")
-        
-        return recommendations
-```
-
-### Integration with Step 8 Artifact Generation
-
-#### Enhanced Step 8 with Built-in Validation
-```markdown
-## Enhanced Step 8: Generate Implementation-Ready Development Artifacts (With Self-Validation)
-
-**MANDATORY VALIDATION PROTOCOL**: After generating each artifact type, the LLM agent MUST:
-
-1. **Self-Assessment**: Evaluate confidence in generated artifacts using LLMSelfAssessment framework
-2. **Automated Validation**: Run appropriate validators (semantic, completeness, standards)
-3. **Integration Check**: Verify artifacts work together coherently
-4. **Confidence Reporting**: Document confidence levels and uncertainty areas
-5. **Validation Results**: Save validation report with recommendations for human review
-
-### Step 8.1: API Contract Definitions (with Validation)
-For each service, generate OpenAPI specifications, then IMMEDIATELY validate:
-
+**Cleanup Actions**:
 ```bash
-# Generate API contracts
-python3 /tools/generate_api_contracts.py /systems/<system_name>/<service>
+# Execute cleanup and finalization script
+python3 /tools/finalize_architecture.py /systems/<system_name>
 
-# MANDATORY: Self-validate generated contracts
-python3 /tools/validate_api_contracts.py /systems/<system_name>/<service>/api_contracts.json
-
-# Check semantic consistency with service architecture
-python3 /tools/validate_semantic_consistency.py /systems/<system_name>/<service>
-
-# Generate confidence report
-python3 /tools/assess_artifact_confidence.py /systems/<system_name>/<service>/api_contracts.json
+# This script will:
+# - Remove temporary files (working_memory.json, current_focus.md, step_progress_tracker.json)
+# - Archive process logs (process_log.md) to /systems/<system_name>/archive/
+# - Validate all final artifacts are present and complete
+# - Generate cleanup report listing removed files
 ```
 
-### Step 8.2: Data Model Specifications (with Validation)
-Generate database schemas and data models, then validate:
+**Files to Remove** (temporary/process artifacts):
+- `working_memory.json` - LLM context management
+- `current_focus.md` - Step-by-step guidance
+- `step_progress_tracker.json` - Progress tracking
+- `artifact_generation_plan.json` - Generation roadmap
+- `context_checkpoint.md` - Context snapshots
+- Individual validation logs and intermediate files
 
-```bash
-# Generate data models
-python3 /tools/generate_data_models.py /systems/<system_name>/<service>
+**Files to Preserve** (final deliverables):
+- All `service_architecture.json` files
+- All Step 8 implementation artifacts (api_contracts.json, data_models.json, etc.)
+- `system_of_systems_graph.json` - Validated architecture graph
+- `index.json` - Master artifact registry
+- `integration_matrix.json` - Service integration specifications
+- Architecture Decision Records (ADRs)
+- Final validation reports
 
-# MANDATORY: Validate data model completeness
-python3 /tools/validate_data_completeness.py /systems/<system_name>/<service>/data_models.json
+### 2. Enhanced Index and Build Instructions
 
-# Check for relationship consistency
-python3 /tools/validate_data_relationships.py /systems/<system_name>
+**Purpose**: Create comprehensive build guidance and artifact registry for development teams.
 
-# Assess LLM confidence
-python3 /tools/assess_artifact_confidence.py /systems/<system_name>/<service>/data_models.json
-```
-
-### System-Wide Integration Validation
-After completing all services for each artifact type:
-
-```bash
-# Run comprehensive system validation
-python3 /tools/validate_system_integration.py /systems/<system_name>
-
-# Generate deployment feasibility report
-python3 /tools/validate_deployment_feasibility.py /systems/<system_name>
-
-# Create comprehensive validation report
-python3 /tools/generate_validation_report.py /systems/<system_name>
-```
-
-### Validation Report Format
+**Enhanced Index Structure** (`/systems/<system_name>/build_ready_index.json`):
 ```json
 {
-  "validation_report": {
-    "system_name": "example_system",
-    "validation_timestamp": "2025-10-04T15:30:00Z",
-    "overall_status": "READY_FOR_IMPLEMENTATION",
-    "confidence_summary": {
-      "high_confidence_artifacts": ["api_contracts", "data_models"],
-      "medium_confidence_artifacts": ["infrastructure"],
-      "low_confidence_artifacts": ["security_configurations"],
-      "requires_human_review": ["complex_integration_scenarios"]
-    },
-    "critical_issues": [
-      {
-        "issue": "Circular dependency between service_a and service_b",
-        "severity": "critical",
-        "recommendation": "Introduce message queue for async communication"
-      }
+  "system_metadata": {
+    "system_name": "system_name",
+    "architecture_version": "1.0+2025-10-04",
+    "completion_date": "2025-10-04T15:30:00Z",
+    "total_services": 4,
+    "technology_stack": {
+      "language": "Python",
+      "framework": "FastAPI",
+      "deployment": "Docker + Traefik",
+      "dependency_management": "Poetry"
+    }
+  },
+  "build_instructions": {
+    "recommended_build_order": [
+      "core_services",
+      "integration_services", 
+      "api_gateway",
+      "frontend_services"
     ],
-    "integration_simulation_results": {
-      "successful_scenarios": 8,
-      "failed_scenarios": 2,
-      "performance_concerns": ["service_c response time > 500ms"]
+    "dependency_groups": {
+      "core_services": ["service_a", "service_b"],
+      "integration_services": ["service_c"],
+      "api_gateway": ["traefik_config"],
+      "frontend_services": ["service_d"]
     },
-    "deployment_feasibility": {
-      "resource_requirements": "within reasonable limits",
-      "dependency_satisfaction": "all dependencies resolvable",
-      "scaling_projections": "linear scaling expected up to 1000 users"
+    "parallel_build_candidates": ["service_a", "service_b"],
+    "critical_path": ["service_a", "service_c", "service_d"]
+  },
+  "artifact_registry": {
+    "service_specifications": {
+      "service_a": {
+        "service_architecture": "/systems/system_name/service_a/service_architecture.json",
+        "api_contracts": "/systems/system_name/service_a/api_contracts.json",
+        "data_models": "/systems/system_name/service_a/data_models.json",
+        "integration_tests": "/systems/system_name/service_a/integration_tests.json",
+        "infrastructure": "/systems/system_name/service_a/infrastructure.json",
+        "implementation_guide": "/systems/system_name/service_a/implementation_guide.md",
+        "testing_requirements": "/systems/system_name/service_a/testing_requirements.json"
+      }
+    },
+    "system_wide_artifacts": {
+      "architecture_graph": "/systems/system_name/system_of_systems_graph.json",
+      "integration_matrix": "/systems/system_name/integration_matrix.json",
+      "deployment_architecture": "/systems/system_name/deployment_architecture.json",
+      "security_framework": "/systems/system_name/security_framework.json"
+    },
+    "build_support": {
+      "docker_compose_template": "/systems/system_name/deployment/docker-compose.yml",
+      "traefik_configuration": "/systems/system_name/deployment/traefik.yml",
+      "environment_configs": "/systems/system_name/deployment/configs/",
+      "ci_cd_pipelines": "/systems/system_name/cicd/"
+    }
+  },
+  "validation_status": {
+    "architecture_validated": true,
+    "integration_verified": true,
+    "security_reviewed": true,
+    "performance_analyzed": true,
+    "deployment_ready": true
+  },
+  "next_phase_guidance": {
+    "implementation_teams": {
+      "service_a_team": {
+        "primary_artifacts": ["service_a/*"],
+        "dependencies": ["service_b"],
+        "estimated_effort": "4-6 weeks",
+        "critical_interfaces": ["auth_service", "data_store"]
+      }
+    },
+    "integration_strategy": {
+      "contract_testing": "Use api_contracts.json for automated contract tests",
+      "mock_services": "Use stubs/ directories for development mocking",
+      "integration_order": "Follow dependency_groups build order"
     }
   }
 }
 ```
+
+**Build Phase Instructions** (`/systems/<system_name>/BUILD_INSTRUCTIONS.md`):
+```markdown
+# Build Phase Instructions
+
+## Quick Start
+1. Review `/systems/system_name/build_ready_index.json` for complete artifact registry
+2. Follow recommended build order: core_services → integration_services → api_gateway → frontend_services
+3. Use service-specific implementation guides in each service directory
+4. Run integration tests after each service completion
+
+## Development Team Assignments
+- **Core Services Team**: service_a, service_b (can be built in parallel)
+- **Integration Team**: service_c (depends on core services)
+- **Infrastructure Team**: Traefik configuration, deployment automation
+- **Frontend Team**: service_d (depends on all backend services)
+
+## Artifact Usage Guide
+- **service_architecture.json**: Complete functional and interface requirements
+- **api_contracts.json**: OpenAPI specs for service implementation
+- **data_models.json**: Database schemas and data validation rules
+- **integration_tests.json**: Contract testing scenarios
+- **infrastructure.json**: Deployment and scaling requirements
+- **implementation_guide.md**: Technology-specific guidance and best practices
+
+## Quality Gates
+1. **Service Completion**: All individual service tests pass
+2. **Interface Validation**: Contract tests pass between services
+3. **Integration Verification**: End-to-end scenarios execute successfully
+4. **Performance Validation**: Meets requirements in infrastructure.json
+5. **Security Review**: Passes security compliance tests
 ```
 
-### Trust Through Transparency and Verification
+### 3. Comprehensive Functional Test Strategy
 
-This self-validation framework addresses the "trust gap" by:
+**Purpose**: Define testing approach for individual services and integrated system validation.
 
-1. **🔍 Multi-Layer Verification**: Semantic, functional, standards, integration, and deployment validation
-2. **📊 Confidence Scoring**: LLM explicitly assesses its own confidence and identifies uncertainty areas  
-3. **🤖 Automated Cross-Checking**: Generated artifacts validate each other for consistency
-4. **📈 Performance Simulation**: Predicts system behavior before implementation
-5. **📋 Standards Compliance**: Validates against current industry best practices via RAG
-6. **🎯 Targeted Human Review**: Identifies specific areas that need human expertise
-7. **📝 Transparent Reporting**: Comprehensive validation reports with actionable recommendations
+**Test Strategy Document** (`/systems/<system_name>/FUNCTIONAL_TEST_STRATEGY.md`):
+```markdown
+# Functional Test Strategy
 
-**Result**: Instead of blind trust, you get validated artifacts with explicit confidence levels, identified uncertainties, and clear guidance on what requires human verification.
+## Testing Hierarchy
 
-## Enhanced Automation Tools and Implementation Guidance
+### Level 1: Individual Service Testing
+**Objective**: Validate each service meets its service_architecture.json specification
 
-### 1. Source Code Integration Automation
+**Test Categories**:
+- **Unit Tests**: Internal service logic and business rules
+- **Contract Tests**: API compliance against api_contracts.json
+- **Data Model Tests**: Database operations and data validation
+- **Security Tests**: Authentication, authorization, input validation
+- **Performance Tests**: Response times and throughput per infrastructure.json
 
-#### Automated GitHub Repository Analysis
-```python
-# Example implementation for GitHub API integration
-import requests
-import json
-from pathlib import Path
+**Automation**: 
+- Use testing_requirements.json for coverage requirements
+- Generate test stubs from api_contracts.json
+- Automated execution in CI/CD pipeline
 
-class GitHubAnalyzer:
-    def __init__(self, api_token):
-        self.api_token = api_token
-        self.headers = {"Authorization": f"token {api_token}"}
-    
-    def analyze_repository(self, repo_url):
-        """Analyze GitHub repository for existing interfaces and APIs"""
-        repo_info = self.extract_repo_info(repo_url)
-        
-        analysis = {
-            "existing_apis": self.scan_for_apis(repo_info),
-            "configuration_files": self.find_config_files(repo_info),
-            "dependencies": self.extract_dependencies(repo_info),
-            "interface_implementations": self.find_interface_patterns(repo_info)
-        }
-        
-        return analysis
-    
-    def generate_implementation_status(self, interface_spec, repo_analysis):
-        """Automatically determine implementation status"""
-        if self.interface_exists_in_code(interface_spec, repo_analysis):
-            return "existing"
-        elif self.interface_mentioned_in_docs(interface_spec, repo_analysis):
-            return "needs_verification" 
-        else:
-            return "missing"
+### Level 2: Interface Integration Testing
+**Objective**: Validate service-to-service communication and data flow
+
+**Test Scenarios**:
+- **Contract Validation**: Verify API contracts between service pairs
+- **Message Format Validation**: Ensure data consistency across interfaces
+- **Error Handling**: Test failure scenarios and recovery mechanisms
+- **Authentication Flow**: Validate security boundaries and token passing
+- **Performance**: Test interface response times and throughput
+
+**Automation**:
+- Use integration_tests.json specifications
+- Mock external dependencies using stubs/
+- Automated regression testing for interface changes
+
+### Level 3: End-to-End System Testing
+**Objective**: Validate complete system functionality and user workflows
+
+**Test Scenarios**:
+- **User Journey Testing**: Complete workflows from system_of_systems_graph.json
+- **Cross-Service Transactions**: Multi-service operations and consistency
+- **System Load Testing**: Full system under expected traffic patterns
+- **Disaster Recovery**: Failure scenarios and system resilience
+- **Security Penetration**: Full system security validation
+
+**Test Environment**:
+- Full deployment using deployment_architecture.json
+- Production-like data volumes and traffic patterns
+- Monitoring and observability per observability.json
+
+## Test Data Strategy
+- **Service Level**: Use data_models.json for test data generation
+- **Integration Level**: Realistic data flows between services
+- **System Level**: Production-representative datasets
+
+## Test Automation Framework
+- **Individual Services**: Framework per implementation_guide.md
+- **Integration**: Contract testing using api_contracts.json
+- **End-to-End**: Selenium/Playwright for user workflows
+- **Performance**: Load testing per infrastructure.json requirements
+
+## Quality Gates and Success Criteria
+1. **Individual Service**: 90%+ test coverage, all contract tests pass
+2. **Integration**: All interface tests pass, performance within SLA
+3. **System**: All user journeys complete, system meets performance requirements
+4. **Production Readiness**: Security tests pass, monitoring operational
+
+## Continuous Testing Strategy
+- **Pre-commit**: Unit tests and contract validation
+- **Integration Branch**: Full integration test suite
+- **Release Candidate**: Complete end-to-end testing
+- **Production**: Continuous monitoring and smoke tests
 ```
 
-#### Deployment Artifact Scanner
-```python
-# Example implementation for deployment validation
-class DeploymentValidator:
-    def __init__(self, project_path):
-        self.project_path = Path(project_path)
-    
-    def scan_deployment_artifacts(self):
-        """Scan for all deployment configuration files"""
-        artifacts = {
-            "nginx_configs": list(self.project_path.rglob("nginx.conf")),
-            "docker_compose": list(self.project_path.rglob("docker-compose*.yml")),
-            "kubernetes_manifests": list(self.project_path.rglob("*.k8s.yaml")),
-            "ansible_playbooks": list(self.project_path.rglob("*.ansible.yml")),
-            "terraform_configs": list(self.project_path.rglob("*.tf"))
-        }
-        return artifacts
-    
-    def validate_routing_consistency(self, logical_architecture, deployment_artifacts):
-        """Compare logical vs deployment architecture"""
-        warnings = []
-        
-        # Parse nginx upstream definitions
-        nginx_upstreams = self.parse_nginx_upstreams(deployment_artifacts["nginx_configs"])
-        
-        # Compare with logical dependencies
-        for service, dependencies in logical_architecture.items():
-            for dep in dependencies:
-                if not self.routing_exists(service, dep, nginx_upstreams):
-                    warnings.append(f"Missing routing: {service} -> {dep}")
-        
-        return warnings
+**Automated Test Generation** (`/systems/<system_name>/test_generation_plan.json`):
+```json
+{
+  "test_generation_strategy": {
+    "contract_tests": {
+      "source": "api_contracts.json files",
+      "framework": "OpenAPI contract testing",
+      "automation": "Generate from specification",
+      "coverage": "All endpoints and response codes"
+    },
+    "integration_tests": {
+      "source": "integration_tests.json files", 
+      "framework": "Service-to-service validation",
+      "automation": "Mock external dependencies",
+      "coverage": "All interface communication paths"
+    },
+    "performance_tests": {
+      "source": "infrastructure.json requirements",
+      "framework": "Load testing framework",
+      "automation": "Automated threshold validation",
+      "coverage": "All performance-critical interfaces"
+    },
+    "security_tests": {
+      "source": "compliance.json requirements",
+      "framework": "Security testing suite",
+      "automation": "OWASP compliance validation",
+      "coverage": "All authentication and authorization flows"
+    }
+  },
+  "test_execution_order": [
+    "unit_tests",
+    "contract_tests", 
+    "integration_tests",
+    "performance_tests",
+    "security_tests",
+    "end_to_end_tests"
+  ]
+}
 ```
 
-### 2. Objective Decomposition Triggers Implementation
-
-#### Automated Complexity Analysis
-```python
-class ComplexityAnalyzer:
-    def __init__(self):
-        self.decomposition_triggers = {
-            "recommended_interface": self.check_recommended_interface,
-            "complexity_threshold": self.check_complexity_threshold,
-            "safety_critical": self.check_safety_critical,
-            "multi_service": self.check_multi_service_coordination,
-            "external_bridge": self.check_external_bridge,
-            "bottleneck": self.check_performance_bottleneck
-        }
-    
-    def should_decompose_to_level3(self, interface_spec, system_graph):
-        """Determine if Level 3 decomposition is needed"""
-        for trigger_name, trigger_func in self.decomposition_triggers.items():
-            if trigger_func(interface_spec, system_graph):
-                return True, trigger_name
-        return False, None
-    
-    def check_complexity_threshold(self, interface_spec, system_graph):
-        """Check if interface requires >3 method calls"""
-        method_count = self.count_required_methods(interface_spec)
-        return method_count > 3
-    
-    def check_safety_critical(self, interface_spec, system_graph):
-        """Check if interface involves coordination or security"""
-        critical_keywords = ["coordination", "lock", "auth", "security", "safety"]
-        description = interface_spec.get("description", "").lower()
-        return any(keyword in description for keyword in critical_keywords)
-```
-
-### 3. Incremental Validation System
-
-#### Validation Checkpoint Manager
-```python
-class ValidationCheckpointManager:
-    def __init__(self, project_path):
-        self.project_path = project_path
-        self.checkpoints = {
-            "post_decomposition": self.validate_template_conformance,
-            "post_graph": self.validate_graph_consistency, 
-            "post_deployment": self.validate_deployment_alignment,
-            "final": self.validate_integration_readiness
-        }
-    
-    def run_checkpoint(self, checkpoint_name, artifacts):
-        """Run specific validation checkpoint"""
-        if checkpoint_name not in self.checkpoints:
-            raise ValueError(f"Unknown checkpoint: {checkpoint_name}")
-        
-        validator = self.checkpoints[checkpoint_name]
-        result = validator(artifacts)
-        
-        if not result.is_valid:
-            raise ValidationError(f"Checkpoint {checkpoint_name} failed: {result.errors}")
-        
-        return result
-    
-    def validate_template_conformance(self, artifacts):
-        """Validate all files conform to templates"""
-        # Run validate_templates.py equivalent
-        return self.run_template_validation()
-    
-    def validate_graph_consistency(self, artifacts):
-        """Validate system graph for cycles and completeness"""
-        graph = self.build_system_graph(artifacts)
-        cycles = self.detect_cycles(graph)
-        if cycles:
-            return ValidationResult(False, f"Circular dependencies: {cycles}")
-        return ValidationResult(True, "Graph is consistent")
-```
-
-### 4. Enhanced Interface Implementation Analysis
-
-#### Automated Interface Generator
-```python
-class InterfaceImplementationGenerator:
-    def __init__(self, source_analyzer, deployment_validator):
-        self.source_analyzer = source_analyzer
-        self.deployment_validator = deployment_validator
-    
-    def generate_precise_interface_spec(self, interface_description, source_repos):
-        """Generate exact implementation specifications"""
-        
-        # Analyze source code for existing patterns
-        existing_patterns = self.source_analyzer.find_similar_interfaces(
-            interface_description, source_repos
-        )
-        
-        # Generate implementation guidance
-        spec = {
-            "method_signatures": self.generate_method_signatures(existing_patterns),
-            "data_structures": self.infer_data_structures(existing_patterns),
-            "error_handling": self.suggest_error_patterns(existing_patterns),
-            "integration_tests": self.generate_test_requirements(interface_description),
-            "implementation_status": self.determine_status(existing_patterns),
-            "source_evidence": self.link_to_source_examples(existing_patterns)
-        }
-        
-        return spec
-    
-    def generate_method_signatures(self, patterns):
-        """Generate specific method signatures based on existing code"""
-        signatures = []
-        for pattern in patterns:
-            if pattern["confidence"] > 0.8:
-                signatures.append({
-                    "signature": pattern["method_signature"],
-                    "source_file": pattern["file_path"],
-                    "status": "existing"
-                })
-            else:
-                signatures.append({
-                    "signature": self.synthesize_signature(pattern),
-                    "rationale": pattern["reasoning"],
-                    "status": "recommended"
-                })
-        return signatures
-```
-
-### 5. Integration with Existing Validation Tools
-
-#### Enhanced validate_templates.py Integration
-```python
-# Enhanced version of validate_templates.py with checkpoint support
-def validate_with_checkpoints(system_path, checkpoint_stage=None):
-    """Run validation appropriate for specific checkpoint"""
-    
-    if checkpoint_stage == "post_decomposition":
-        # Validate basic template conformance
-        return validate_basic_templates(system_path)
-    
-    elif checkpoint_stage == "post_graph":
-        # Validate templates + graph consistency
-        basic_result = validate_basic_templates(system_path) 
-        graph_result = validate_graph_structure(system_path)
-        return combine_results(basic_result, graph_result)
-    
-    elif checkpoint_stage == "post_deployment":
-        # Validate templates + graph + deployment alignment
-        return validate_full_architecture(system_path)
-    
-    elif checkpoint_stage == "final":
-        # Comprehensive validation for integration readiness
-        return validate_integration_readiness(system_path)
-    
-    else:
-        # Default: run all validations
-        return validate_comprehensive(system_path)
-```
-
-### 6. LLM Context Management and Memory Tools
-
-#### Context Manager for Long Operations
-```python
-import json
-import time
-from datetime import datetime
-from pathlib import Path
-
-class LLMContextManager:
-    def __init__(self, system_path):
-        self.system_path = Path(system_path)
-        self.process_log_path = self.system_path / "process_log.md"
-        self.working_memory_path = self.system_path / "working_memory.json"
-        self.context_checkpoint_path = self.system_path / "context_checkpoint.md"
-        self.operation_count = 0
-        self.last_refresh = time.time()
-        
-    def should_refresh_context(self):
-        """Determine if context refresh is needed"""
-        return (
-            self.operation_count >= 7 or  # Every 7 operations
-            (time.time() - self.last_refresh) > 1200 or  # Every 20 minutes
-            self.detect_context_degradation()
-        )
-    
-    def detect_context_degradation(self):
-        """Detect signs of context loss"""
-        degradation_indicators = [
-            "template_violations_detected",
-            "naming_inconsistencies_found", 
-            "forgotten_constraints_detected",
-            "repetitive_questions_asked"
-        ]
-        # Implementation would check for these indicators
-        return False
-    
-    def save_current_state(self, current_operation, progress_data):
-        """Save current state to working memory"""
-        state = {
-            "timestamp": datetime.now().isoformat(),
-            "current_operation": current_operation,
-            "operation_count": self.operation_count,
-            "progress_data": progress_data,
-            "system_context": self.get_system_context()
-        }
-        
-        with open(self.working_memory_path, 'w') as f:
-            json.dump(state, f, indent=2)
-    
-    def create_context_checkpoint(self):
-        """Create condensed context checkpoint for quick restoration"""
-        checkpoint_content = f"""# Context Checkpoint - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-## System Overview
-- **System Name**: {self.get_system_name()}
-- **Current Step**: {self.get_current_step()}
-- **Operations Completed**: {self.operation_count}
-
-## Critical Constraints
-{self.get_critical_constraints()}
-
-## Current Objectives
-{self.get_current_objectives()}
-
-## Key Decisions Made
-{self.get_key_decisions()}
-
-## Template Requirements
-- Use exact format from `/templates/service_architecture_template.json`
-- Follow UAF hierarchical structure (tier_0/tier_1/tier_2)
-- Mark implementation_status as existing/recommended/hypothetical
-- Include source_verification for all interfaces
-
-## Refresh Protocol Completed ✓
-- Architectural definitions reloaded
-- Template requirements confirmed
-- System context verified
-- Progress validated against process log
-"""
-        
-        with open(self.context_checkpoint_path, 'w') as f:
-            f.write(checkpoint_content)
-    
-    def log_decision(self, decision_type, description, rationale):
-        """Log important decisions to process log"""
-        log_entry = f"""
-## {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {decision_type}
-
-**Description**: {description}
-
-**Rationale**: {rationale}
-
-**Operation Count**: {self.operation_count}
+These three completion activities ensure that the architecture process delivers a clean, organized, and actionable set of artifacts ready for the development and implementation phase, with comprehensive testing strategy to validate both individual services and the integrated system.
 
 ---
-"""
-        
-        with open(self.process_log_path, 'a') as f:
-            f.write(log_entry)
-    
-    def execute_context_refresh(self):
-        """Execute full context refresh protocol"""
-        print("🔄 EXECUTING CONTEXT REFRESH PROTOCOL")
-        
-        # 1. Save current state
-        self.save_current_state("context_refresh", {"refresh_reason": "scheduled"})
-        
-        # 2. Create context checkpoint
-        self.create_context_checkpoint()
-        
-        # 3. Log refresh event
-        self.log_decision("CONTEXT_REFRESH", "Scheduled context refresh executed", 
-                         f"Operation count: {self.operation_count}, Time since last: {time.time() - self.last_refresh:.1f}s")
-        
-        # 4. Reset counters
-        self.operation_count = 0
-        self.last_refresh = time.time()
-        
-        print("✅ CONTEXT REFRESH COMPLETED - Ready to resume operations")
-        
-        return {
-            "system_name": self.get_system_name(),
-            "current_step": self.get_current_step(),
-            "critical_constraints": self.get_critical_constraints(),
-            "template_requirements": self.get_template_requirements()
-        }
-    
-    def increment_operation(self, operation_description):
-        """Track operation and check for refresh need"""
-        self.operation_count += 1
-        
-        if self.should_refresh_context():
-            print(f"⚠️  CONTEXT REFRESH TRIGGERED after operation: {operation_description}")
-            return self.execute_context_refresh()
-        
-        return None
 
-# Usage in step-by-step process
-def enhanced_step_2_with_context_management(system_description, system_path):
-    """Enhanced Step 2 with automatic context management"""
-    
-    context_manager = LLMContextManager(system_path)
-    
-    # Initial context setup
-    context_manager.log_decision("STEP_START", "Beginning Step 2: Decomposition", 
-                                "Starting systematic decomposition with context management")
-    
-    services_to_process = identify_services(system_description)
-    
-    for i, service in enumerate(services_to_process):
-        # Check for context refresh need before each service
-        refresh_data = context_manager.increment_operation(f"Processing service: {service['name']}")
-        
-        if refresh_data:
-            # Context was refreshed - confirm we're still on track
-            print(f"📋 CONTEXT RESTORED - Continuing with service {i+1}/{len(services_to_process)}: {service['name']}")
-            print(f"🎯 Current objective: {refresh_data['current_step']}")
-        
-        # Process the service
-        service_architecture = create_service_architecture(service, refresh_data)
-        
-        # Log the completion
-        context_manager.log_decision("SERVICE_COMPLETED", f"Completed {service['name']}", 
-                                    f"Service {i+1}/{len(services_to_process)} processed successfully")
-    
-    # Final context checkpoint
-    context_manager.create_context_checkpoint()
-    context_manager.log_decision("STEP_COMPLETED", "Step 2 completed successfully", 
-                                f"All {len(services_to_process)} services processed with {context_manager.operation_count} total operations")
-```
-
-#### Context Restoration Utility
-```python
-def restore_llm_context(system_path):
-    """Utility to restore LLM context from checkpoint files"""
-    
-    system_path = Path(system_path)
-    context_checkpoint = system_path / "context_checkpoint.md"
-    working_memory = system_path / "working_memory.json"
-    
-    if not context_checkpoint.exists():
-        raise FileNotFoundError("No context checkpoint found - cannot restore context")
-    
-    # Read checkpoint
-    with open(context_checkpoint, 'r') as f:
-        checkpoint_content = f.read()
-    
-    # Read working memory if available
-    working_state = {}
-    if working_memory.exists():
-        with open(working_memory, 'r') as f:
-            working_state = json.load(f)
-    
-    restoration_prompt = f"""
-🔄 CONTEXT RESTORATION PROTOCOL
-
-The following critical context must be restored for continuing the step-by-step architecture process:
-
-{checkpoint_content}
-
-**Working Memory State**: {json.dumps(working_state, indent=2)}
-
-**MANDATORY ACTIONS BEFORE PROCEEDING:**
-1. ✅ Confirm system name and current objectives
-2. ✅ Reload architectural definitions from `/definitions/architectural_definitions.json`
-3. ✅ Refresh template requirements from `/templates/`
-4. ✅ Verify current step and progress
-5. ✅ Resume operations with full context awareness
-
-**RESPONSE REQUIRED**: Please confirm context restoration by stating:
-- Current system name
-- Current step being executed
-- Next specific action to be taken
-- Any critical constraints that must be maintained
-"""
-    
-    return restoration_prompt
-```
-
-### 6. Implementation Roadmap
-
-#### Phase 1: Core Automation (Immediate)
-1. **Template Validation Enhancement**: Add checkpoint-specific validation modes
-2. **Graph Analysis Automation**: Enhanced system graph building with cycle detection
-3. **Basic Source Code Scanning**: Simple GitHub repository analysis for API discovery
-
-#### Phase 2: Advanced Integration (Short-term)
-1. **Deployment Artifact Parsing**: Automated nginx, Docker, K8s configuration analysis
-2. **Objective Decomposition Triggers**: Automated complexity analysis and Level 3 triggers
-3. **Incremental Validation System**: Checkpoint manager with rollback capabilities
-
-#### Phase 3: Full Automation (Medium-term)
-1. **AI-Powered Interface Generation**: ML-based interface implementation suggestion
-2. **Continuous Architecture Validation**: CI/CD integration for architecture drift detection
-3. **Cross-Repository Analysis**: Multi-repo system architecture validation
-
-This enhanced automation framework transforms the step-by-step process from manual to automated while maintaining the rigor and completeness that ensures water-tight service specifications.
+# ...existing code...
