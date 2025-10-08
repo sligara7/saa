@@ -702,9 +702,26 @@
           ]
         },
         {
+          "action_id": "9.4.1",
+          "description": "Create architecture context summary for visualizations",
+          "tool": "manual",
+          "output_file": "systems/<system_name>/ARCHITECTURE_CONTEXT_SUMMARY.md",
+          "guidance": "Before creating visualizations, generate a summary of all service architectures, components, interfaces, and implementation statuses to provide context for diagram generation",
+          "includes": [
+            "List of all Level 1 systems/components",
+            "List of all Level 2 components within each Level 1 parent",
+            "List of all Level 3 decompositions (if any)",
+            "Implementation status for each component (existing/recommended/hypothetical)",
+            "Primary interfaces between components",
+            "External systems and dependencies"
+          ],
+          "rationale": "Prevents issues where service architecture files are not immediately accessible during visualization generation"
+        },
+        {
           "action_id": "9.5",
           "description": "Generate Mermaid architecture visualizations",
           "tool": "manual",
+          "prerequisites": ["ARCHITECTURE_CONTEXT_SUMMARY.md must exist"],
           "output_files": [
             "systems/<system_name>/visualizations/ARCHITECTURE_VISUALIZATION.md",
             "systems/<system_name>/visualizations/level1_architecture.mmd",
@@ -718,14 +735,15 @@
             "Master visualization document with all diagrams and navigation hierarchy"
           ],
           "guidance": [
+            "Read ARCHITECTURE_CONTEXT_SUMMARY.md to understand system components and relationships",
             "Create separate Mermaid diagrams for each hierarchy level to maintain clarity",
             "Use flowchart or graph notation for Level 1 and Level 2 (e.g., graph LR or graph TB)",
             "Show interface names on edges/connections between nodes",
             "Color-code nodes by status: existing (green), recommended (blue), hypothetical (yellow), external (gray)",
-            "Include legend in each diagram explaining node colors and edge types",
-            "For Level 3, consider using class diagrams (classDiagram) or sequence diagrams for complex flows",
-            "Embed all .mmd files in ARCHITECTURE_VISUALIZATION.md with descriptive context",
-            "Add navigation links between hierarchy levels in the master document"
+            "CRITICAL: Embed complete Mermaid code directly in ARCHITECTURE_VISUALIZATION.md - DO NOT use [[@include]] syntax",
+            "For Level 3, use sequence diagrams, class diagrams, or state diagrams as appropriate",
+            "Add navigation links between hierarchy levels in the master document",
+            "Use Markdown tables for legends instead of bullet lists with emoji"
           ],
           "diagram_specifications": {
             "level1": {
@@ -761,11 +779,14 @@
             "level3_files": "level3_architecture.mmd (optional) - deep dive on complex interfaces"
           },
           "success_criteria": [
+            "ARCHITECTURE_CONTEXT_SUMMARY.md exists and is complete",
             "All hierarchy levels present in architecture are visualized",
             "Interfaces are clearly labeled on diagram edges",
-            "Color coding matches implementation status from service_architecture.json files",
-            "Diagrams are syntactically valid Mermaid markup",
-            "Master document provides clear navigation and context"
+            "Color coding matches implementation status from context summary",
+            "Diagrams are syntactically valid Mermaid markup that renders properly",
+            "All Mermaid code is embedded directly in ARCHITECTURE_VISUALIZATION.md (no file inclusion syntax)",
+            "Master document provides clear navigation and context",
+            "Legend uses Markdown table format for proper rendering"
           ]
         },
         {
