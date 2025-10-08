@@ -7,6 +7,19 @@
   },
   
   "context_management": {
+    "system_isolation": {
+      "mandatory_check": "ALWAYS verify working directory is /home/ajs7/project/saa/systems/<system_name> before ANY operation",
+      "working_directory_rule": "cd to systems/<system_name> at the start of EVERY step and substep",
+      "path_verification": "pwd must equal /home/ajs7/project/saa/systems/<system_name> before file operations",
+      "cross_contamination_prevention": [
+        "NEVER reference or modify files in other system directories",
+        "All file paths must be relative to current system directory or absolute with verified system_name",
+        "Before reading ANY file, verify it contains the current system_name in its path",
+        "If you find yourself in wrong system directory, STOP immediately and return to correct directory"
+      ],
+      "context_file_location": "ALL context files (current_focus.md, working_memory.json, etc.) MUST be in systems/<system_name>/",
+      "sanity_check": "If system_name from working_memory.json doesn't match pwd, ERROR and STOP"
+    },
     "refresh_triggers": {
       "operation_count": 4,
       "time_minutes": 12,
@@ -15,10 +28,12 @@
       "degradation_detected": true
     },
     "validation_before_every_operation": [
+      "VERIFY: pwd equals /home/ajs7/project/saa/systems/<system_name>",
       "READ: systems/<system_name>/current_focus.md",
       "READ: systems/<system_name>/step_progress_tracker.json",
       "CHECK: operations_since_refresh <= 4",
-      "VERIFY: system_name, current_step, current_substep"
+      "VERIFY: system_name, current_step, current_substep",
+      "CONFIRM: No files from other systems will be modified"
     ],
     "refresh_sequence": [
       "PAUSE: Stop all operations",
@@ -36,7 +51,10 @@
       "Repeating questions about completed work",
       "Using wrong template format",
       "Creating files in wrong directory",
-      "Not updating progress tracking files"
+      "Not updating progress tracking files",
+      "Working in wrong system directory (e.g., dnd when should be in brain)",
+      "Referencing files from other systems",
+      "pwd does not match system_name from working_memory.json"
     ],
     "tracking_files": {
       "process_log": "systems/<system_name>/process_log.md",
@@ -623,6 +641,20 @@
       "context_refresh": "before",
       "actions": [
         {
+          "action_id": "9.0",
+          "description": "Directory structure cleanup",
+          "tool": "bash",
+          "guidance": "Remove empty/redundant directories that duplicate the services/ structure",
+          "tasks": [
+            "Identify all empty directories at root of systems/<system_name>/",
+            "Check if corresponding directories exist in systems/<system_name>/services/",
+            "Remove empty root-level directories that duplicate services/ structure",
+            "Document removed directories in process_log.md"
+          ],
+          "script": "find /home/ajs7/project/saa/systems/<system_name>/ -maxdepth 1 -type d -empty -not -name '.' -not -name '..' -exec echo 'Empty directory: {}' \\; -exec rm -rf {} \\;",
+          "success_criteria": "No empty directories at root level"
+        },
+        {
           "action_id": "9.1",
           "description": "Artifact cleanup",
           "tool": "manual",
@@ -671,6 +703,73 @@
         },
         {
           "action_id": "9.5",
+          "description": "Generate Mermaid architecture visualizations",
+          "tool": "manual",
+          "output_files": [
+            "systems/<system_name>/visualizations/ARCHITECTURE_VISUALIZATION.md",
+            "systems/<system_name>/visualizations/level1_architecture.mmd",
+            "systems/<system_name>/visualizations/level2_architecture.mmd",
+            "systems/<system_name>/visualizations/level3_architecture.mmd"
+          ],
+          "includes": [
+            "Level 1 Mermaid graph showing system-to-system or major component interfaces",
+            "Level 2 Mermaid graph showing component-to-component interfaces within each Level 1 entity",
+            "Level 3 Mermaid graph showing internal module/class interfaces (if Level 3 decomposition was performed)",
+            "Master visualization document with all diagrams and navigation hierarchy"
+          ],
+          "guidance": [
+            "Create separate Mermaid diagrams for each hierarchy level to maintain clarity",
+            "Use flowchart or graph notation for Level 1 and Level 2 (e.g., graph LR or graph TB)",
+            "Show interface names on edges/connections between nodes",
+            "Color-code nodes by status: existing (green), recommended (blue), hypothetical (yellow), external (gray)",
+            "Include legend in each diagram explaining node colors and edge types",
+            "For Level 3, consider using class diagrams (classDiagram) or sequence diagrams for complex flows",
+            "Embed all .mmd files in ARCHITECTURE_VISUALIZATION.md with descriptive context",
+            "Add navigation links between hierarchy levels in the master document"
+          ],
+          "diagram_specifications": {
+            "level1": {
+              "shows": "Top-level systems or major components",
+              "edges_represent": "Primary interfaces and data flows between Level 1 entities",
+              "recommended_style": "graph TB or graph LR",
+              "max_nodes_per_diagram": 15,
+              "split_strategy": "If >15 nodes, create domain-specific sub-diagrams"
+            },
+            "level2": {
+              "shows": "Components/submodules within each Level 1 entity",
+              "edges_represent": "Interfaces between Level 2 components",
+              "recommended_style": "graph TB (one diagram per Level 1 parent)",
+              "organization": "Create one Level 2 diagram per Level 1 parent, showing its internal structure"
+            },
+            "level3": {
+              "shows": "Internal modules, classes, or functions (only if Level 3 was decomposed)",
+              "edges_represent": "Method calls, data dependencies, integration points",
+              "recommended_style": "classDiagram for object relationships, sequenceDiagram for workflows",
+              "organization": "Create Level 3 diagrams only for components that underwent deep decomposition"
+            }
+          },
+          "node_styling": {
+            "existing": "fill:#9f9,stroke:#393,stroke-width:2px",
+            "recommended": "fill:#9cf,stroke:#369,stroke-width:2px",
+            "hypothetical": "fill:#ff9,stroke:#990,stroke-width:2px,stroke-dasharray: 5 5",
+            "external": "fill:#ccc,stroke:#666,stroke-width:2px"
+          },
+          "example_structure": {
+            "master_doc": "ARCHITECTURE_VISUALIZATION.md with embedded diagrams",
+            "level1_file": "level1_architecture.mmd - system overview",
+            "level2_files": "level2_architecture.mmd - can be single file or multiple per-parent files",
+            "level3_files": "level3_architecture.mmd (optional) - deep dive on complex interfaces"
+          },
+          "success_criteria": [
+            "All hierarchy levels present in architecture are visualized",
+            "Interfaces are clearly labeled on diagram edges",
+            "Color coding matches implementation status from service_architecture.json files",
+            "Diagrams are syntactically valid Mermaid markup",
+            "Master document provides clear navigation and context"
+          ]
+        },
+        {
+          "action_id": "9.6",
           "description": "Final process log entry",
           "tool": "manual",
           "update_files": ["process_log.md"],
